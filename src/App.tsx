@@ -5,11 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
 import { Layout } from "@/components/layout/Layout";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import Index from "./pages/Index";
 import DailyLogPage from "./pages/DailyLogPage";
 import LearningPage from "./pages/LearningPage";
 import InterviewsPage from "./pages/InterviewsPage";
 import GoalsPage from "./pages/GoalsPage";
+import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,7 +24,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route element={<Layout />}>
+            <Route path="/auth" element={<AuthPage />} />
+            <Route element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
               <Route path="/" element={<Index />} />
               <Route path="/daily-log" element={<DailyLogPage />} />
               <Route path="/learning" element={<LearningPage />} />

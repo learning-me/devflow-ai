@@ -7,6 +7,7 @@ import { useApp } from '@/contexts/AppContext';
 import { CheckCircle, XCircle, Loader2, ArrowRight, Trophy, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface QuizModalProps {
   topic: LearningTopic;
@@ -14,41 +15,8 @@ interface QuizModalProps {
   onClose: () => void;
 }
 
-// Mock question generation - will be replaced with Groq API
-const generateMockQuestions = (topicTitle: string): Question[] => {
-  return [
-    {
-      id: '1',
-      text: `What is the basic concept of ${topicTitle}? Explain in your own words.`,
-      difficulty: 'easy',
-    },
-    {
-      id: '2',
-      text: `How would you implement or apply ${topicTitle} in a real-world scenario? Give an example.`,
-      difficulty: 'medium',
-    },
-    {
-      id: '3',
-      text: `What are the potential edge cases or limitations when using ${topicTitle}? How would you handle them?`,
-      difficulty: 'hard',
-    },
-  ];
-};
-
-// Mock answer evaluation - will be replaced with Groq API
-const evaluateMockAnswer = (question: string, answer: string): { isCorrect: boolean; feedback: string } => {
-  // Simple mock evaluation based on answer length
-  const isCorrect = answer.trim().length > 20;
-  return {
-    isCorrect,
-    feedback: isCorrect
-      ? 'Good explanation! You demonstrated understanding of the concept.'
-      : 'Your answer needs more detail. Try to explain the concept more thoroughly.',
-  };
-};
-
 export const QuizModal: React.FC<QuizModalProps> = ({ topic, open, onClose }) => {
-  const { updateLearningTopic, completeLearning } = useApp();
+  const { completeLearning } = useApp();
   const { toast } = useToast();
   
   const [currentStep, setCurrentStep] = useState<'loading' | 'quiz' | 'result'>('loading');
@@ -61,88 +29,121 @@ export const QuizModal: React.FC<QuizModalProps> = ({ topic, open, onClose }) =>
 
   useEffect(() => {
     if (open) {
-      // Generate questions
       setCurrentStep('loading');
       setQuestions([]);
       setAnswers([]);
       setCurrentQuestionIndex(0);
       setCurrentAnswer('');
       setLastFeedback(null);
-
-      // Simulate API call delay
-      setTimeout(() => {
-        const generatedQuestions = generateMockQuestions(topic.title);
-        setQuestions(generatedQuestions);
-        setCurrentStep('quiz');
-      }, 1500);
+      generateQuestions();
     }
   }, [open, topic.title]);
+
+  const generateQuestions = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-quiz', {
+        body: { topic: topic.title, action: 'generate' }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      if (data.questions && data.questions.length === 3) {
+        setQuestions(data.questions);
+        setCurrentStep('quiz');
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error: unknown) {
+      console.error('Failed to generate questions:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Please try again later.';
+      toast({
+        title: "Failed to generate questions",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      onClose();
+    }
+  };
 
   const handleSubmitAnswer = async () => {
     if (!currentAnswer.trim()) return;
 
     setIsEvaluating(true);
     
-    // Simulate API evaluation delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    const evaluation = evaluateMockAnswer(
-      questions[currentQuestionIndex].text,
-      currentAnswer
-    );
-    
-    const newAnswer: Answer = {
-      questionId: questions[currentQuestionIndex].id,
-      userAnswer: currentAnswer,
-      isCorrect: evaluation.isCorrect,
-      feedback: evaluation.feedback,
-    };
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-quiz', {
+        body: { 
+          action: 'evaluate',
+          questionText: questions[currentQuestionIndex].text,
+          answer: currentAnswer,
+          difficulty: questions[currentQuestionIndex].difficulty
+        }
+      });
 
-    const updatedAnswers = [...answers, newAnswer];
-    setAnswers(updatedAnswers);
-    setLastFeedback(evaluation);
-    setIsEvaluating(false);
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
-    // Check if failed medium question (completion requirement)
-    if (currentQuestionIndex === 1 && !evaluation.isCorrect) {
-      // Failed medium question - cannot complete
+      const newAnswer: Answer = {
+        questionId: questions[currentQuestionIndex].id,
+        userAnswer: currentAnswer,
+        isCorrect: data.isCorrect,
+        feedback: data.feedback,
+      };
+
+      const updatedAnswers = [...answers, newAnswer];
+      setAnswers(updatedAnswers);
+      setLastFeedback({ isCorrect: data.isCorrect, feedback: data.feedback });
+      setIsEvaluating(false);
+
+      // Check if failed medium question (completion requirement)
+      if (currentQuestionIndex === 1 && !data.isCorrect) {
+        toast({
+          title: "Keep Learning!",
+          description: "You need to correctly answer the Medium question to complete this topic.",
+          variant: "destructive",
+        });
+        
+        setTimeout(() => {
+          completeLearning(topic.id, false);
+          setCurrentStep('result');
+        }, 2000);
+        return;
+      }
+
+      // Move to next question or finish
+      if (currentQuestionIndex < 2) {
+        setTimeout(() => {
+          setCurrentQuestionIndex((prev) => prev + 1);
+          setCurrentAnswer('');
+          setLastFeedback(null);
+        }, 2000);
+      } else {
+        // Completed all questions - check if Easy + Medium passed
+        const easyCorrect = updatedAnswers[0]?.isCorrect;
+        const mediumCorrect = updatedAnswers[1]?.isCorrect;
+        const success = easyCorrect && mediumCorrect;
+
+        setTimeout(() => {
+          completeLearning(topic.id, success);
+          setCurrentStep('result');
+
+          if (success) {
+            toast({
+              title: "🔥 Topic Completed!",
+              description: "Your streak has increased! Keep up the great work.",
+            });
+          }
+        }, 2000);
+      }
+    } catch (error: unknown) {
+      console.error('Failed to evaluate answer:', error);
       toast({
-        title: "Keep Learning!",
-        description: "You need to correctly answer the Medium question to complete this topic.",
+        title: "Evaluation failed",
+        description: "Please try again.",
         variant: "destructive",
       });
-      
-      setTimeout(() => {
-        completeLearning(topic.id, false);
-        setCurrentStep('result');
-      }, 2000);
-      return;
-    }
-
-    // Move to next question or finish
-    if (currentQuestionIndex < 2) {
-      setTimeout(() => {
-        setCurrentQuestionIndex((prev) => prev + 1);
-        setCurrentAnswer('');
-        setLastFeedback(null);
-      }, 2000);
-    } else {
-      // Completed all questions - check if Easy + Medium passed
-      const easyCorrect = updatedAnswers[0]?.isCorrect;
-      const mediumCorrect = updatedAnswers[1]?.isCorrect;
-      const success = easyCorrect && mediumCorrect;
-
-      setTimeout(() => {
-        completeLearning(topic.id, success);
-        setCurrentStep('result');
-
-        if (success) {
-          toast({
-            title: "🔥 Topic Completed!",
-            description: "Your streak has increased! Keep up the great work.",
-          });
-        }
-      }, 2000);
+      setIsEvaluating(false);
     }
   };
 
@@ -163,7 +164,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ topic, open, onClose }) =>
         {currentStep === 'loading' && (
           <div className="py-12 text-center">
             <Loader2 className="w-8 h-8 mx-auto animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Generating questions...</p>
+            <p className="text-muted-foreground">Generating AI-powered questions...</p>
           </div>
         )}
 
@@ -305,8 +306,8 @@ export const QuizModal: React.FC<QuizModalProps> = ({ topic, open, onClose }) =>
                     <XCircle className="w-4 h-4 text-destructive" />
                   )}
                   <span>
-                    {questions[i].difficulty.charAt(0).toUpperCase() +
-                      questions[i].difficulty.slice(1)}
+                    {questions[i]?.difficulty.charAt(0).toUpperCase() +
+                      questions[i]?.difficulty.slice(1)}
                     : {answer.isCorrect ? 'Correct' : 'Incorrect'}
                   </span>
                 </div>
