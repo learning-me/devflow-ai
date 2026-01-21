@@ -2,12 +2,21 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
 import { formatDisplayDate } from '@/lib/storage';
 import { InterviewForm } from './InterviewForm';
 import { Trash2, Edit, Briefcase, Building2 } from 'lucide-react';
 import { Interview } from '@/types';
 import { cn } from '@/lib/utils';
+
+const statusOptions = [
+  { value: 'applied', label: 'Applied' },
+  { value: 'hr', label: 'HR Round' },
+  { value: 'technical', label: 'Technical' },
+  { value: 'offer', label: 'Offer' },
+  { value: 'rejected', label: 'Rejected' },
+];
 
 const statusConfig: Record<
   Interview['status'],
@@ -21,9 +30,17 @@ const statusConfig: Record<
 };
 
 export const InterviewList: React.FC = () => {
-  const { state, deleteInterview } = useApp();
+  const { state, deleteInterview, updateInterview } = useApp();
   const [editingInterview, setEditingInterview] = useState<Interview | null>(null);
   const [filter, setFilter] = useState<Interview['status'] | 'all'>('all');
+
+  const handleStatusChange = (interview: Interview, newStatus: Interview['status']) => {
+    updateInterview({
+      ...interview,
+      status: newStatus,
+      lastUpdated: new Date().toISOString(),
+    });
+  };
 
   const filteredInterviews = state.interviews.filter((interview) => {
     if (filter === 'all') return true;
@@ -106,9 +123,21 @@ export const InterviewList: React.FC = () => {
                     <p className="text-sm text-muted-foreground mb-3">{interview.role}</p>
 
                     <div className="flex items-center gap-3 mb-3">
-                      <span className={cn('px-2.5 py-1 rounded-full text-xs font-medium', config.bgColor, config.color)}>
-                        {config.label}
-                      </span>
+                      <Select 
+                        value={interview.status} 
+                        onValueChange={(v) => handleStatusChange(interview, v as Interview['status'])}
+                      >
+                        <SelectTrigger className={cn('w-auto h-auto px-2.5 py-1 rounded-full text-xs font-medium border-0', config.bgColor, config.color)}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statusOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <span className="text-xs text-muted-foreground">
                         Applied {formatDisplayDate(interview.appliedDate)}
                       </span>
@@ -126,7 +155,7 @@ export const InterviewList: React.FC = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => setEditingInterview(interview)}
-                      className="h-8 w-8"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -134,7 +163,7 @@ export const InterviewList: React.FC = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteInterview(interview.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
