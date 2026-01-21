@@ -14,7 +14,6 @@ const AuthPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -56,48 +55,20 @@ const AuthPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-          },
-        });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (error) {
-          if (error.message.includes('already registered')) {
-            toast({
-              title: "Account exists",
-              description: "This email is already registered. Please sign in instead.",
-              variant: "destructive",
-            });
-          } else {
-            throw error;
-          }
-        } else {
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
           toast({
-            title: "Account created!",
-            description: "You can now sign in with your credentials.",
+            title: "Invalid credentials",
+            description: "Please check your email and password.",
+            variant: "destructive",
           });
-          setIsSignUp(false);
-        }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          if (error.message.includes('Invalid login credentials')) {
-            toast({
-              title: "Invalid credentials",
-              description: "Please check your email and password.",
-              variant: "destructive",
-            });
-          } else {
-            throw error;
-          }
+        } else {
+          throw error;
         }
       }
     } catch (error: any) {
@@ -120,9 +91,7 @@ const AuthPage: React.FC = () => {
           </div>
           <CardTitle className="text-2xl font-bold">DevTracker</CardTitle>
           <CardDescription>
-            {isSignUp 
-              ? "Create an account to track your progress" 
-              : "Sign in to continue your learning journey"}
+            Sign in to continue your learning journey
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -163,25 +132,13 @@ const AuthPage: React.FC = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {isSignUp ? 'Creating account...' : 'Signing in...'}
+                  Signing in...
                 </>
               ) : (
-                isSignUp ? 'Create Account' : 'Sign In'
+                'Sign In'
               )}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-accent hover:underline"
-            >
-              {isSignUp 
-                ? "Already have an account? Sign in" 
-                : "Don't have an account? Create one"}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>

@@ -147,9 +147,9 @@
                 0 0 40px hsl(var(--streak-glow) / 0.2);
   }
 
-  /* Card hover effect */
+  /* Card hover effect - scoped to cards only */
   .card-hover {
-    @apply transition-all duration-200 ease-out cursor-pointer;
+    @apply transition-all duration-200 ease-out;
   }
 
   .card-hover:hover {
