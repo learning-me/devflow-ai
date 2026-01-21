@@ -149,11 +149,15 @@
 
   /* Card hover effect */
   .card-hover {
-    @apply transition-all duration-200 ease-out;
+    @apply transition-all duration-200 ease-out cursor-pointer;
   }
 
   .card-hover:hover {
-    @apply shadow-lg -translate-y-0.5;
+    @apply shadow-lg -translate-y-0.5 border-primary/20;
+  }
+
+  .card-hover:active {
+    @apply scale-[0.99];
   }
 
   /* Notion-style content blocks */
