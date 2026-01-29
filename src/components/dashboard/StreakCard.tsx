@@ -10,8 +10,8 @@ export const StreakCard: React.FC = () => {
   const isActiveToday = lastCompletedDate === new Date().toISOString().split('T')[0];
 
   return (
-    <Card className="card-hover overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
+    <Card className="card-hover overflow-hidden relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 pointer-events-none" />
       <CardContent className="relative p-6">
         <div className="flex items-start justify-between">
           <div>
