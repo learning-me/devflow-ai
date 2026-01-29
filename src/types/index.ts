@@ -14,12 +14,12 @@ export interface LearningTopic {
   id: string;
   title: string;
   description?: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'failed';
-  questions?: Question[];
-  answers?: Answer[];
+  status: 'pending' | 'in-progress' | 'completed';
   completedAt?: string;
   createdAt: string;
   tags: Tag[];
+  revisionDays?: number[]; // [1, 3, 7] - days to revise after completion
+  revisedOn?: string[]; // dates when revision was done
 }
 
 export interface Question {

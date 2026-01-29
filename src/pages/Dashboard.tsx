@@ -3,6 +3,7 @@ import { StreakCard } from '@/components/dashboard/StreakCard';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { HeatmapCalendar } from '@/components/dashboard/HeatmapCalendar';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { PomodoroTimer } from '@/components/pomodoro/PomodoroTimer';
 
 const Dashboard: React.FC = () => {
   return (
@@ -15,9 +16,10 @@ const Dashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Top Section: Streak + Heatmap */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Top Section: Streak + Pomodoro + Heatmap */}
+      <div className="grid lg:grid-cols-3 gap-6">
         <StreakCard />
+        <PomodoroTimer />
         <HeatmapCalendar />
       </div>
 

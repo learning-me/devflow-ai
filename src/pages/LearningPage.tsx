@@ -3,7 +3,8 @@ import { LearningForm } from '@/components/learning/LearningForm';
 import { LearningList } from '@/components/learning/LearningList';
 import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
-import { Flame, CheckCircle, Clock } from 'lucide-react';
+import { Flame, CheckCircle, Clock, RotateCcw } from 'lucide-react';
+import { differenceInDays, parseISO, format } from 'date-fns';
 
 const LearningPage: React.FC = () => {
   const { state } = useApp();
@@ -13,6 +14,31 @@ const LearningPage: React.FC = () => {
     (t) => t.status === 'pending' || t.status === 'in-progress'
   ).length;
 
+  // Count topics due for revision
+  const revisionDue = state.learningTopics.filter((topic) => {
+    if (topic.status !== 'completed' || !topic.completedAt) return false;
+    
+    const completedDate = parseISO(topic.completedAt);
+    const today = new Date();
+    const daysSinceCompletion = differenceInDays(today, completedDate);
+    
+    const revisionDays = topic.revisionDays || [1, 3, 7];
+    const revisedOn = topic.revisedOn || [];
+    
+    for (const day of revisionDays) {
+      if (daysSinceCompletion >= day) {
+        const revisionDate = new Date(completedDate);
+        revisionDate.setDate(revisionDate.getDate() + day);
+        const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
+        
+        if (!revisedOn.includes(revisionDateStr)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }).length;
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -20,14 +46,14 @@ const LearningPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold mb-2">Learning Tracker</h1>
           <p className="text-muted-foreground">
-            Add topics, validate your knowledge with AI quizzes, and build your streak.
+            Add topics, mark as complete, and use spaced repetition (1, 3, 7 days) to retain knowledge.
           </p>
         </div>
         <LearningForm />
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -60,6 +86,18 @@ const LearningPage: React.FC = () => {
             <div>
               <div className="text-2xl font-bold">{pending}</div>
               <div className="text-xs text-muted-foreground">Pending</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+              <RotateCcw className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{revisionDue}</div>
+              <div className="text-xs text-muted-foreground">Due Revision</div>
             </div>
           </CardContent>
         </Card>
