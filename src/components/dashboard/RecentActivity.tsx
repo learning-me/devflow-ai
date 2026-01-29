@@ -92,8 +92,6 @@ export const RecentActivity: React.FC = () => {
                     className={`text-xs px-2 py-0.5 rounded-full ${
                       topic.status === 'completed'
                         ? 'bg-success/20 text-success'
-                        : topic.status === 'failed'
-                        ? 'bg-destructive/20 text-destructive'
                         : 'bg-accent/20 text-accent'
                     }`}
                   >

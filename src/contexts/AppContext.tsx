@@ -69,13 +69,13 @@ const reducer = (state: AppState, action: Action): AppState => {
       const today = formatDate(new Date());
       const updatedTopic: LearningTopic = {
         ...topic,
-        status: action.payload.success ? 'completed' : 'failed',
-        completedAt: action.payload.success ? today : undefined,
+        status: 'completed',
+        completedAt: today,
+        revisionDays: [1, 3, 7],
+        revisedOn: [],
       };
 
-      const newStreakData = action.payload.success
-        ? calculateStreak(state.streakData, today)
-        : state.streakData;
+      const newStreakData = calculateStreak(state.streakData, today);
 
       return {
         ...state,
