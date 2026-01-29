@@ -11,6 +11,7 @@ import DailyLogPage from "./pages/DailyLogPage";
 import LearningPage from "./pages/LearningPage";
 import InterviewsPage from "./pages/InterviewsPage";
 import GoalsPage from "./pages/GoalsPage";
+import PomodoroPage from "./pages/PomodoroPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/learning" element={<LearningPage />} />
               <Route path="/interviews" element={<InterviewsPage />} />
               <Route path="/goals" element={<GoalsPage />} />
+              <Route path="/pomodoro" element={<PomodoroPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

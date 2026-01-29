@@ -9,7 +9,8 @@ import {
   Flame,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Timer
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Daily Log', href: '/daily-log', icon: Calendar },
   { name: 'Learning', href: '/learning', icon: BookOpen },
+  { name: 'Pomodoro', href: '/pomodoro', icon: Timer },
   { name: 'Interviews', href: '/interviews', icon: Briefcase },
   { name: 'Goals', href: '/goals', icon: Target },
 ];
