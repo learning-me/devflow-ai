@@ -7,6 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Flame, Loader2, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().trim().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+});
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,14 +20,17 @@ const AuthPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         navigate('/');
       }
     });
 
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         navigate('/');
@@ -31,24 +40,27 @@ const AuthPage: React.FC = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const validateForm = (): boolean => {
+    const result = loginSchema.safeParse({ email, password });
+    
+    if (!result.success) {
+      const fieldErrors: { email?: string; password?: string } = {};
+      result.error.errors.forEach((error) => {
+        const field = error.path[0] as 'email' | 'password';
+        fieldErrors[field] = error.message;
+      });
+      setErrors(fieldErrors);
+      return false;
+    }
+    
+    setErrors({});
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast({
-        title: "Missing fields",
-        description: "Please enter both email and password.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters.",
-        variant: "destructive",
-      });
+    if (!validateForm()) {
       return;
     }
 
@@ -56,7 +68,7 @@ const AuthPage: React.FC = () => {
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -64,17 +76,27 @@ const AuthPage: React.FC = () => {
         if (error.message.includes('Invalid login credentials')) {
           toast({
             title: "Invalid credentials",
-            description: "Please check your email and password.",
+            description: "The email or password you entered is incorrect.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes('Email not confirmed')) {
+          toast({
+            title: "Email not confirmed",
+            description: "Please check your email and confirm your account.",
             variant: "destructive",
           });
         } else {
-          throw error;
+          toast({
+            title: "Sign in failed",
+            description: error.message,
+            variant: "destructive",
+          });
         }
       }
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Error",
-        description: error.message || "An error occurred. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -105,11 +127,17 @@ const AuthPage: React.FC = () => {
                   type="email"
                   placeholder="you@example.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
+                  className={`pl-10 ${errors.email ? 'border-destructive' : ''}`}
+                  autoComplete="email"
                 />
               </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -121,11 +149,17 @@ const AuthPage: React.FC = () => {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  required
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
+                  className={`pl-10 ${errors.password ? 'border-destructive' : ''}`}
+                  autoComplete="current-password"
                 />
               </div>
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
