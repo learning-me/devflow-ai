@@ -15,6 +15,7 @@ const defaultState: AppState = {
   interviews: [],
   goals: [],
   streakData: defaultStreakData,
+  pomodoroSessions: [],
 };
 
 export const loadState = (): AppState => {

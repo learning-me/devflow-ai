@@ -3,6 +3,7 @@ import { StreakCard } from '@/components/dashboard/StreakCard';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { HeatmapCalendar } from '@/components/dashboard/HeatmapCalendar';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { DueRevisions } from '@/components/dashboard/DueRevisions';
 
 const Dashboard: React.FC = () => {
   return (
@@ -23,6 +24,9 @@ const Dashboard: React.FC = () => {
 
       {/* Stats Cards */}
       <StatsCards />
+
+      {/* Due Revisions */}
+      <DueRevisions />
 
       {/* Recent Activity */}
       <RecentActivity />

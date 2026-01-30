@@ -9,7 +9,7 @@ import { Flame, Loader2, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
-const loginSchema = z.object({
+const authSchema = z.object({
   email: z.string().trim().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
 });
@@ -20,6 +20,7 @@ const AuthPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
@@ -41,7 +42,7 @@ const AuthPage: React.FC = () => {
   }, [navigate]);
 
   const validateForm = (): boolean => {
-    const result = loginSchema.safeParse({ email, password });
+    const result = authSchema.safeParse({ email, password });
     
     if (!result.success) {
       const fieldErrors: { email?: string; password?: string } = {};
@@ -67,30 +68,61 @@ const AuthPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
+        });
 
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Invalid credentials",
-            description: "The email or password you entered is incorrect.",
-            variant: "destructive",
-          });
-        } else if (error.message.includes('Email not confirmed')) {
-          toast({
-            title: "Email not confirmed",
-            description: "Please check your email and confirm your account.",
-            variant: "destructive",
-          });
+        if (error) {
+          if (error.message.includes('User already registered')) {
+            toast({
+              title: "Account exists",
+              description: "An account with this email already exists. Try signing in.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Sign up failed",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
         } else {
           toast({
-            title: "Sign in failed",
-            description: error.message,
-            variant: "destructive",
+            title: "Account created!",
+            description: "You've been signed in automatically.",
           });
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+
+        if (error) {
+          if (error.message.includes('Invalid login credentials')) {
+            toast({
+              title: "Invalid credentials",
+              description: "The email or password you entered is incorrect.",
+              variant: "destructive",
+            });
+          } else if (error.message.includes('Email not confirmed')) {
+            toast({
+              title: "Email not confirmed",
+              description: "Please check your email and confirm your account.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Sign in failed",
+              description: error.message,
+              variant: "destructive",
+            });
+          }
         }
       }
     } catch {
@@ -113,7 +145,7 @@ const AuthPage: React.FC = () => {
           </div>
           <CardTitle className="text-2xl font-bold">DevTracker</CardTitle>
           <CardDescription>
-            Sign in to continue your learning journey
+            {isSignUp ? 'Create an account to start tracking' : 'Sign in to continue your journey'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -154,7 +186,7 @@ const AuthPage: React.FC = () => {
                     if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                   }}
                   className={`pl-10 ${errors.password ? 'border-destructive' : ''}`}
-                  autoComplete="current-password"
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
                 />
               </div>
               {errors.password && (
@@ -166,12 +198,44 @@ const AuthPage: React.FC = () => {
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
+                  {isSignUp ? 'Creating account...' : 'Signing in...'}
                 </>
               ) : (
-                'Sign In'
+                isSignUp ? 'Create Account' : 'Sign In'
               )}
             </Button>
+
+            <div className="text-center text-sm text-muted-foreground">
+              {isSignUp ? (
+                <>
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignUp(false);
+                      setErrors({});
+                    }}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Sign in
+                  </button>
+                </>
+              ) : (
+                <>
+                  Don't have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignUp(true);
+                      setErrors({});
+                    }}
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Create one
+                  </button>
+                </>
+              )}
+            </div>
           </form>
         </CardContent>
       </Card>

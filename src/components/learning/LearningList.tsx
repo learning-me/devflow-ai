@@ -47,7 +47,7 @@ export const LearningList: React.FC = () => {
   });
 
   const handleMarkComplete = (topic: LearningTopic) => {
-    completeLearning(topic.id, true);
+    completeLearning(topic.id);
   };
 
   const handleRevise = (topic: LearningTopic, day: number) => {

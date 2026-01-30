@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, Clock, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useApp } from '@/contexts/AppContext';
+import { format, parseISO, isToday } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -12,21 +14,38 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const PomodoroPage: React.FC = () => {
+  const { state, addPomodoroSession } = useApp();
+  
   const [workMinutes, setWorkMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [timeLeft, setTimeLeft] = useState(workMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [sessionsCompleted, setSessionsCompleted] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tempWork, setTempWork] = useState(workMinutes);
   const [tempBreak, setTempBreak] = useState(breakMinutes);
+  const [selectedTaskId, setSelectedTaskId] = useState<string>('none');
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Get today's sessions
+  const todaySessions = (state.pomodoroSessions || []).filter(
+    (session) => isToday(parseISO(session.completedAt)) && session.type === 'work'
+  );
+
+  // Get today's daily logs for task selection
+  const recentTasks = state.dailyLogs.slice(0, 10);
 
   const playTick = useCallback(() => {
     if (!soundEnabled) return;
@@ -88,6 +107,17 @@ const PomodoroPage: React.FC = () => {
     }
   }, [soundEnabled]);
 
+  const recordSession = useCallback((type: 'work' | 'break', duration: number) => {
+    const task = recentTasks.find((t) => t.id === selectedTaskId);
+    addPomodoroSession({
+      taskId: selectedTaskId !== 'none' ? selectedTaskId : undefined,
+      taskName: task?.tasks?.split('\n')[0]?.slice(0, 50) || undefined,
+      duration,
+      completedAt: new Date().toISOString(),
+      type,
+    });
+  }, [addPomodoroSession, selectedTaskId, recentTasks]);
+
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
       intervalRef.current = setInterval(() => {
@@ -96,10 +126,11 @@ const PomodoroPage: React.FC = () => {
             playAlarm();
             setIsRunning(false);
             if (isBreak) {
+              recordSession('break', breakMinutes);
               setIsBreak(false);
               return workMinutes * 60;
             } else {
-              setSessionsCompleted((s) => s + 1);
+              recordSession('work', workMinutes);
               setIsBreak(true);
               return breakMinutes * 60;
             }
@@ -121,7 +152,7 @@ const PomodoroPage: React.FC = () => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, isBreak, workMinutes, breakMinutes, playTick, playAlarm]);
+  }, [isRunning, isBreak, workMinutes, breakMinutes, playTick, playAlarm, recordSession]);
 
   const toggleTimer = () => {
     setIsRunning(!isRunning);
@@ -151,6 +182,9 @@ const PomodoroPage: React.FC = () => {
 
   const totalTime = isBreak ? breakMinutes * 60 : workMinutes * 60;
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
+
+  // Get last 10 sessions for history
+  const recentSessions = (state.pomodoroSessions || []).slice(0, 10);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -215,6 +249,29 @@ const PomodoroPage: React.FC = () => {
           </Dialog>
         </div>
       </div>
+
+      {/* Task Selection */}
+      <Card className="max-w-md mx-auto">
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            <Label htmlFor="task-select">Link to Task (optional)</Label>
+            <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
+              <SelectTrigger id="task-select">
+                <SelectValue placeholder="Select a task to track" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No task linked</SelectItem>
+                {recentTasks.map((task) => (
+                  <SelectItem key={task.id} value={task.id}>
+                    {task.tasks.split('\n')[0].slice(0, 40)}
+                    {task.tasks.split('\n')[0].length > 40 ? '...' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Main Timer */}
       <div className="flex justify-center">
@@ -304,7 +361,7 @@ const PomodoroPage: React.FC = () => {
       <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-primary">{sessionsCompleted}</div>
+            <div className="text-3xl font-bold text-primary">{todaySessions.length}</div>
             <div className="text-xs text-muted-foreground">Sessions Today</div>
           </CardContent>
         </Card>
@@ -321,6 +378,55 @@ const PomodoroPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Session History */}
+      <Card className="max-w-md mx-auto">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <History className="w-5 h-5 text-primary" />
+            Session History
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {recentSessions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No sessions yet. Start your first pomodoro!
+            </p>
+          ) : (
+            recentSessions.map((session) => (
+              <div
+                key={session.id}
+                className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    session.type === 'work' ? "bg-primary/10" : "bg-success/10"
+                  )}>
+                    <Clock className={cn(
+                      "w-4 h-4",
+                      session.type === 'work' ? "text-primary" : "text-success"
+                    )} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {session.type === 'work' ? 'Focus Session' : 'Break'} • {session.duration}min
+                    </p>
+                    {session.taskName && (
+                      <p className="text-xs text-muted-foreground line-clamp-1">
+                        {session.taskName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {format(parseISO(session.completedAt), 'h:mm a')}
+                </span>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       {/* Tips */}
       <Card className="max-w-md mx-auto">
