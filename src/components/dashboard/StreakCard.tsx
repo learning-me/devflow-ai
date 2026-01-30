@@ -2,6 +2,7 @@ import React from 'react';
 import { Flame, TrendingUp, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
+import { cn } from '@/lib/utils';
 
 export const StreakCard: React.FC = () => {
   const { state } = useApp();
@@ -51,9 +52,9 @@ export const StreakCard: React.FC = () => {
               <Calendar className="w-4 h-4 text-secondary-foreground" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Status</p>
-              <p className="font-semibold text-success">
-                {isActiveToday ? 'Active' : 'Pending'}
+              <p className="text-xs text-muted-foreground">Today</p>
+              <p className={cn("font-semibold", isActiveToday ? "text-success" : "text-muted-foreground")}>
+                {isActiveToday ? '✓ Done' : 'Not yet'}
               </p>
             </div>
           </div>

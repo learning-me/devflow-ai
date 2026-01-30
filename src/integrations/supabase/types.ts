@@ -14,7 +14,222 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_logs: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          tags: string[] | null
+          tasks: string
+          time_spent: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          notes?: string | null
+          tags?: string[] | null
+          tasks: string
+          time_spent?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          tags?: string[] | null
+          tasks?: string
+          time_spent?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          completed: boolean
+          created_at: string
+          current_count: number
+          end_date: string
+          id: string
+          linked_topics: string[] | null
+          start_date: string
+          target_count: number
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          current_count?: number
+          end_date: string
+          id?: string
+          linked_topics?: string[] | null
+          start_date: string
+          target_count?: number
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          current_count?: number
+          end_date?: string
+          id?: string
+          linked_topics?: string[] | null
+          start_date?: string
+          target_count?: number
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      interviews: {
+        Row: {
+          applied_date: string
+          company: string
+          created_at: string
+          id: string
+          last_updated: string
+          notes: string | null
+          role: string
+          status: string
+          timeline: Json | null
+          user_id: string
+        }
+        Insert: {
+          applied_date: string
+          company: string
+          created_at?: string
+          id?: string
+          last_updated?: string
+          notes?: string | null
+          role: string
+          status?: string
+          timeline?: Json | null
+          user_id: string
+        }
+        Update: {
+          applied_date?: string
+          company?: string
+          created_at?: string
+          id?: string
+          last_updated?: string
+          notes?: string | null
+          role?: string
+          status?: string
+          timeline?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      learning_topics: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          revised_on: string[] | null
+          revision_days: number[] | null
+          status: string
+          tags: string[] | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          revised_on?: string[] | null
+          revision_days?: number[] | null
+          status?: string
+          tags?: string[] | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          revised_on?: string[] | null
+          revision_days?: number[] | null
+          status?: string
+          tags?: string[] | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pomodoro_sessions: {
+        Row: {
+          completed_at: string
+          duration: number
+          id: string
+          task_id: string | null
+          task_name: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          duration: number
+          id?: string
+          task_id?: string | null
+          task_name?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          duration?: number
+          id?: string
+          task_id?: string | null
+          task_name?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      streak_data: {
+        Row: {
+          created_at: string
+          current_streak: number
+          daily_activity: Json | null
+          id: string
+          last_completed_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          daily_activity?: Json | null
+          id?: string
+          last_completed_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          daily_activity?: Json | null
+          id?: string
+          last_completed_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

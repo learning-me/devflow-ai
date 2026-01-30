@@ -72,10 +72,20 @@ export interface StreakData {
   dailyActivity: Record<string, number>; // date -> activity count
 }
 
+export interface PomodoroSession {
+  id: string;
+  taskId?: string; // optional link to a daily log task
+  taskName?: string;
+  duration: number; // in minutes
+  completedAt: string;
+  type: 'work' | 'break';
+}
+
 export interface AppState {
   dailyLogs: DailyLog[];
   learningTopics: LearningTopic[];
   interviews: Interview[];
   goals: Goal[];
   streakData: StreakData;
+  pomodoroSessions: PomodoroSession[];
 }
