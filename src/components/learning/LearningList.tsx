@@ -8,10 +8,14 @@ import { Trash2, CheckCircle, Clock, BookOpen, RotateCcw } from 'lucide-react';
 import { LearningTopic } from '@/types';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, format } from 'date-fns';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 
 export const LearningList: React.FC = () => {
   const { state, deleteLearningTopic, updateLearningTopic, completeLearning } = useApp();
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'revision'>('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null);
+  const [deletingTopicName, setDeletingTopicName] = useState<string>('');
 
   // Get topics that need revision today
   const getRevisionDue = (topic: LearningTopic): number | null => {
@@ -202,7 +206,11 @@ export const LearningList: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => deleteLearningTopic(topic.id)}
+                      onClick={() => {
+                        setDeletingTopicId(topic.id);
+                        setDeletingTopicName(topic.title);
+                        setDeleteDialogOpen(true);
+                      }}
                       className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -214,6 +222,21 @@ export const LearningList: React.FC = () => {
           );
         })}
       </div>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={() => {
+          if (deletingTopicId) {
+            deleteLearningTopic(deletingTopicId);
+            setDeletingTopicId(null);
+            setDeletingTopicName('');
+          }
+          setDeleteDialogOpen(false);
+        }}
+        title="Delete Learning Topic"
+        itemName={deletingTopicName}
+      />
     </>
   );
 };

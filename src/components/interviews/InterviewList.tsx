@@ -9,6 +9,7 @@ import { InterviewForm } from './InterviewForm';
 import { Trash2, Edit, Briefcase, Building2 } from 'lucide-react';
 import { Interview } from '@/types';
 import { cn } from '@/lib/utils';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 
 const statusOptions = [
   { value: 'applied', label: 'Applied' },
@@ -33,6 +34,9 @@ export const InterviewList: React.FC = () => {
   const { state, deleteInterview, updateInterview } = useApp();
   const [editingInterview, setEditingInterview] = useState<Interview | null>(null);
   const [filter, setFilter] = useState<Interview['status'] | 'all'>('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingInterviewId, setDeletingInterviewId] = useState<string | null>(null);
+  const [deletingInterviewName, setDeletingInterviewName] = useState<string>('');
 
   const handleStatusChange = (interview: Interview, newStatus: Interview['status']) => {
     updateInterview({
@@ -162,7 +166,11 @@ export const InterviewList: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => deleteInterview(interview.id)}
+                      onClick={() => {
+                        setDeletingInterviewId(interview.id);
+                        setDeletingInterviewName(`${interview.company} - ${interview.role}`);
+                        setDeleteDialogOpen(true);
+                      }}
                       className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -188,6 +196,21 @@ export const InterviewList: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={() => {
+          if (deletingInterviewId) {
+            deleteInterview(deletingInterviewId);
+            setDeletingInterviewId(null);
+            setDeletingInterviewName('');
+          }
+          setDeleteDialogOpen(false);
+        }}
+        title="Delete Interview"
+        itemName={deletingInterviewName}
+      />
     </>
   );
 };

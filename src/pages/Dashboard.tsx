@@ -4,6 +4,7 @@ import { StatsCards } from '@/components/dashboard/StatsCards';
 import { HeatmapCalendar } from '@/components/dashboard/HeatmapCalendar';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 import { DueRevisions } from '@/components/dashboard/DueRevisions';
+import { GoalsProgress } from '@/components/dashboard/GoalsProgress';
 
 const Dashboard: React.FC = () => {
   return (
@@ -25,8 +26,11 @@ const Dashboard: React.FC = () => {
       {/* Stats Cards */}
       <StatsCards />
 
-      {/* Due Revisions */}
-      <DueRevisions />
+      {/* Goals + Due Revisions */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <GoalsProgress />
+        <DueRevisions />
+      </div>
 
       {/* Recent Activity */}
       <RecentActivity />
