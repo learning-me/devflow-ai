@@ -8,8 +8,11 @@ import { TagBadge } from '@/components/ui/TagBadge';
 import { DailyLogForm } from './DailyLogForm';
 import { Trash2, Edit, Clock } from 'lucide-react';
 import { DailyLog } from '@/types';
+import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 
 export const DailyLogList: React.FC = () => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
   const { state, deleteDailyLog } = useApp();
   const [editingLog, setEditingLog] = useState<DailyLog | null>(null);
 
@@ -83,7 +86,10 @@ export const DailyLogList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => deleteDailyLog(log.id)}
+                          onClick={() => {
+                            setDeletingLogId(log.id);
+                            setDeleteDialogOpen(true);
+                          }}
                           className="h-8 w-8 text-destructive hover:text-destructive"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -111,6 +117,20 @@ export const DailyLogList: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={() => {
+          if (deletingLogId) {
+            deleteDailyLog(deletingLogId);
+            setDeletingLogId(null);
+          }
+          setDeleteDialogOpen(false);
+        }}
+        title="Delete Daily Log"
+        description="Are you sure you want to delete this log entry? This action cannot be undone."
+      />
     </>
   );
 };

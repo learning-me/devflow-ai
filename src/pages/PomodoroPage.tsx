@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, Clock, History } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, Clock, History, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
 import { format, parseISO, isToday } from 'date-fns';
@@ -21,10 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PomodoroPage: React.FC = () => {
   const { state, addPomodoroSession } = useApp();
-  
+
   const [workMinutes, setWorkMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(5);
   const [timeLeft, setTimeLeft] = useState(workMinutes * 60);
@@ -34,8 +35,10 @@ const PomodoroPage: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tempWork, setTempWork] = useState(workMinutes);
   const [tempBreak, setTempBreak] = useState(breakMinutes);
+  const [selectedTopicId, setSelectedTopicId] = useState<string>('none');
+  const [linkType, setLinkType] = useState<'task' | 'topic'>('topic');
   const [selectedTaskId, setSelectedTaskId] = useState<string>('none');
-  
+
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -44,30 +47,36 @@ const PomodoroPage: React.FC = () => {
     (session) => isToday(parseISO(session.completedAt)) && session.type === 'work'
   );
 
-  // Get today's daily logs for task selection
+  // Get learning topics for selection
+  const activeTopics = state.learningTopics.filter(
+    (t) => t.status === 'pending' || t.status === 'in-progress'
+  );
+
+  // Get recent tasks
   const recentTasks = state.dailyLogs.slice(0, 10);
 
   const playTick = useCallback(() => {
     if (!soundEnabled) return;
-    
+
     try {
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        audioContextRef.current = new (window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       }
-      
+
       const ctx = audioContextRef.current;
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(ctx.destination);
-      
+
       oscillator.frequency.value = 800;
       oscillator.type = 'sine';
-      
+
       gainNode.gain.setValueAtTime(0.05, ctx.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-      
+
       oscillator.start(ctx.currentTime);
       oscillator.stop(ctx.currentTime + 0.05);
     } catch {
@@ -77,28 +86,29 @@ const PomodoroPage: React.FC = () => {
 
   const playAlarm = useCallback(() => {
     if (!soundEnabled) return;
-    
+
     try {
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        audioContextRef.current = new (window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       }
-      
+
       const ctx = audioContextRef.current;
-      
+
       for (let i = 0; i < 3; i++) {
         const oscillator = ctx.createOscillator();
         const gainNode = ctx.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(ctx.destination);
-        
+
         oscillator.frequency.value = 600;
         oscillator.type = 'sine';
-        
+
         const startTime = ctx.currentTime + i * 0.3;
         gainNode.gain.setValueAtTime(0.3, startTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.2);
-        
+
         oscillator.start(startTime);
         oscillator.stop(startTime + 0.2);
       }
@@ -107,16 +117,32 @@ const PomodoroPage: React.FC = () => {
     }
   }, [soundEnabled]);
 
-  const recordSession = useCallback((type: 'work' | 'break', duration: number) => {
-    const task = recentTasks.find((t) => t.id === selectedTaskId);
-    addPomodoroSession({
-      taskId: selectedTaskId !== 'none' ? selectedTaskId : undefined,
-      taskName: task?.tasks?.split('\n')[0]?.slice(0, 50) || undefined,
-      duration,
-      completedAt: new Date().toISOString(),
-      type,
-    });
-  }, [addPomodoroSession, selectedTaskId, recentTasks]);
+  const getSessionName = useCallback(() => {
+    if (linkType === 'topic' && selectedTopicId !== 'none') {
+      const topic = activeTopics.find((t) => t.id === selectedTopicId);
+      return topic?.title?.slice(0, 50);
+    } else if (linkType === 'task' && selectedTaskId !== 'none') {
+      const task = recentTasks.find((t) => t.id === selectedTaskId);
+      return task?.tasks?.split('\n')[0]?.slice(0, 50);
+    }
+    return undefined;
+  }, [linkType, selectedTopicId, selectedTaskId, activeTopics, recentTasks]);
+
+  const recordSession = useCallback(
+    (type: 'work' | 'break', duration: number) => {
+      const taskId = linkType === 'task' && selectedTaskId !== 'none' ? selectedTaskId : undefined;
+      const topicId = linkType === 'topic' && selectedTopicId !== 'none' ? selectedTopicId : undefined;
+
+      addPomodoroSession({
+        taskId: taskId || topicId,
+        taskName: getSessionName(),
+        duration,
+        completedAt: new Date().toISOString(),
+        type,
+      });
+    },
+    [addPomodoroSession, linkType, selectedTaskId, selectedTopicId, getSessionName]
+  );
 
   useEffect(() => {
     if (isRunning && timeLeft > 0) {
@@ -183,8 +209,8 @@ const PomodoroPage: React.FC = () => {
   const totalTime = isBreak ? breakMinutes * 60 : workMinutes * 60;
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
 
-  // Get last 10 sessions for history
-  const recentSessions = (state.pomodoroSessions || []).slice(0, 10);
+  // Get last 15 sessions for history
+  const recentSessions = (state.pomodoroSessions || []).slice(0, 15);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -192,21 +218,11 @@ const PomodoroPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">Pomodoro Timer</h1>
-          <p className="text-muted-foreground">
-            Stay focused with timed work sessions and breaks.
-          </p>
+          <p className="text-muted-foreground">Stay focused with timed work sessions and breaks.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSoundEnabled(!soundEnabled)}
-          >
-            {soundEnabled ? (
-              <Volume2 className="w-4 h-4" />
-            ) : (
-              <VolumeX className="w-4 h-4" />
-            )}
+          <Button variant="outline" size="icon" onClick={() => setSoundEnabled(!soundEnabled)}>
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
           <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
             <DialogTrigger asChild>
@@ -250,26 +266,55 @@ const PomodoroPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Task Selection */}
+      {/* Link to Topic or Task */}
       <Card className="max-w-md mx-auto">
         <CardContent className="p-4">
-          <div className="space-y-2">
-            <Label htmlFor="task-select">Link to Task (optional)</Label>
-            <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-              <SelectTrigger id="task-select">
-                <SelectValue placeholder="Select a task to track" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No task linked</SelectItem>
-                {recentTasks.map((task) => (
-                  <SelectItem key={task.id} value={task.id}>
-                    {task.tasks.split('\n')[0].slice(0, 40)}
-                    {task.tasks.split('\n')[0].length > 40 ? '...' : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Tabs value={linkType} onValueChange={(v) => setLinkType(v as 'task' | 'topic')}>
+            <TabsList className="w-full mb-4">
+              <TabsTrigger value="topic" className="flex-1 gap-2">
+                <BookOpen className="w-4 h-4" />
+                Learning Topic
+              </TabsTrigger>
+              <TabsTrigger value="task" className="flex-1 gap-2">
+                <Clock className="w-4 h-4" />
+                Daily Task
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="topic" className="space-y-2">
+              <Label htmlFor="topic-select">Link to Learning Topic</Label>
+              <Select value={selectedTopicId} onValueChange={setSelectedTopicId}>
+                <SelectTrigger id="topic-select">
+                  <SelectValue placeholder="Select a topic to focus on" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No topic linked</SelectItem>
+                  {activeTopics.map((topic) => (
+                    <SelectItem key={topic.id} value={topic.id}>
+                      {topic.title.slice(0, 40)}
+                      {topic.title.length > 40 ? '...' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TabsContent>
+            <TabsContent value="task" className="space-y-2">
+              <Label htmlFor="task-select">Link to Daily Task</Label>
+              <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
+                <SelectTrigger id="task-select">
+                  <SelectValue placeholder="Select a task to track" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No task linked</SelectItem>
+                  {recentTasks.map((task) => (
+                    <SelectItem key={task.id} value={task.id}>
+                      {task.tasks.split('\n')[0].slice(0, 40)}
+                      {task.tasks.split('\n')[0].length > 40 ? '...' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
@@ -277,10 +322,7 @@ const PomodoroPage: React.FC = () => {
       <div className="flex justify-center">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center pb-2">
-            <CardTitle className={cn(
-              "text-lg font-semibold",
-              isBreak ? "text-success" : "text-primary"
-            )}>
+            <CardTitle className={cn('text-lg font-semibold', isBreak ? 'text-success' : 'text-primary')}>
               {isBreak ? '☕ Break Time' : '🔥 Focus Time'}
             </CardTitle>
           </CardHeader>
@@ -289,20 +331,13 @@ const PomodoroPage: React.FC = () => {
               {/* Timer Circle */}
               <div className="relative w-64 h-64">
                 <svg className="w-full h-full -rotate-90">
+                  <circle cx="128" cy="128" r="120" fill="none" stroke="hsl(var(--muted))" strokeWidth="12" />
                   <circle
                     cx="128"
                     cy="128"
                     r="120"
                     fill="none"
-                    stroke="hsl(var(--muted))"
-                    strokeWidth="12"
-                  />
-                  <circle
-                    cx="128"
-                    cy="128"
-                    r="120"
-                    fill="none"
-                    stroke={isBreak ? "hsl(var(--success))" : "hsl(var(--primary))"}
+                    stroke={isBreak ? 'hsl(var(--success))' : 'hsl(var(--primary))'}
                     strokeWidth="12"
                     strokeLinecap="round"
                     strokeDasharray={`${2 * Math.PI * 120}`}
@@ -312,32 +347,26 @@ const PomodoroPage: React.FC = () => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-6xl font-bold">{formatTime(timeLeft)}</span>
-                  <span className={cn(
-                    "text-sm font-medium mt-2",
-                    isBreak ? "text-success" : "text-primary"
-                  )}>
+                  <span className={cn('text-sm font-medium mt-2', isBreak ? 'text-success' : 'text-primary')}>
                     {isBreak ? `${breakMinutes} min break` : `${workMinutes} min session`}
                   </span>
+                  {getSessionName() && (
+                    <span className="text-xs text-muted-foreground mt-1 max-w-[180px] truncate">
+                      {getSessionName()}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Controls */}
               <div className="flex items-center gap-4">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={resetTimer}
-                  className="h-14 w-14"
-                >
+                <Button variant="outline" size="lg" onClick={resetTimer} className="h-14 w-14">
                   <RotateCcw className="w-5 h-5" />
                 </Button>
                 <Button
                   size="lg"
                   onClick={toggleTimer}
-                  className={cn(
-                    "h-16 w-32 text-lg gap-2",
-                    isBreak && "bg-success hover:bg-success/90"
-                  )}
+                  className={cn('h-16 w-32 text-lg gap-2', isBreak && 'bg-success hover:bg-success/90')}
                 >
                   {isRunning ? (
                     <>
@@ -387,41 +416,40 @@ const PomodoroPage: React.FC = () => {
             Session History
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-2 max-h-[400px] overflow-y-auto">
           {recentSessions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               No sessions yet. Start your first pomodoro!
             </p>
           ) : (
             recentSessions.map((session) => (
-              <div
-                key={session.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-secondary/50"
-              >
+              <div key={session.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
                 <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center",
-                    session.type === 'work' ? "bg-primary/10" : "bg-success/10"
-                  )}>
-                    <Clock className={cn(
-                      "w-4 h-4",
-                      session.type === 'work' ? "text-primary" : "text-success"
-                    )} />
+                  <div
+                    className={cn(
+                      'w-8 h-8 rounded-lg flex items-center justify-center',
+                      session.type === 'work' ? 'bg-primary/10' : 'bg-success/10'
+                    )}
+                  >
+                    <Clock className={cn('w-4 h-4', session.type === 'work' ? 'text-primary' : 'text-success')} />
                   </div>
                   <div>
                     <p className="text-sm font-medium">
                       {session.type === 'work' ? 'Focus Session' : 'Break'} • {session.duration}min
                     </p>
                     {session.taskName && (
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {session.taskName}
-                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{session.taskName}</p>
                     )}
                   </div>
                 </div>
-                <span className="text-xs text-muted-foreground">
-                  {format(parseISO(session.completedAt), 'h:mm a')}
-                </span>
+                <div className="text-right">
+                  <span className="text-xs text-muted-foreground block">
+                    {format(parseISO(session.completedAt), 'h:mm a')}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(parseISO(session.completedAt), 'MMM d')}
+                  </span>
+                </div>
               </div>
             ))
           )}
