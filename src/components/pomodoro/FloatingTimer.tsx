@@ -3,7 +3,7 @@ import { usePomodoro } from '@/contexts/PomodoroContext';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, X, GripHorizontal, RotateCcw, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const FloatingTimer: React.FC = () => {
   const {
@@ -21,6 +21,7 @@ export const FloatingTimer: React.FC = () => {
   } = usePomodoro();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const timerRef = useRef<HTMLDivElement>(null);
@@ -90,7 +91,10 @@ export const FloatingTimer: React.FC = () => {
     };
   }, [isDragging, dragOffset, setFloatingPosition]);
 
-  if (!isFloating) return null;
+  // Auto-hide on pomodoro page
+  const isOnPomodoroPage = location.pathname === '/pomodoro';
+  
+  if (!isFloating || isOnPomodoroPage) return null;
 
   const sessionName = getSessionName();
 
@@ -98,7 +102,7 @@ export const FloatingTimer: React.FC = () => {
     <div
       ref={timerRef}
       className={cn(
-        'fixed z-50 bg-card border rounded-xl shadow-2xl p-3 select-none',
+        'fixed z-[100] bg-card border rounded-xl shadow-2xl p-3 select-none',
         isDragging && 'cursor-grabbing'
       )}
       style={{

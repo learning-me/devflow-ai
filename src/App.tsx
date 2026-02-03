@@ -19,34 +19,40 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => (
+  <>
+    <FloatingTimer />
+    <Routes>
+      <Route path="/auth" element={<AuthPage />} />
+      <Route element={
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
+      }>
+        <Route path="/" element={<Index />} />
+        <Route path="/daily-log" element={<DailyLogPage />} />
+        <Route path="/learning" element={<LearningPage />} />
+        <Route path="/interviews" element={<InterviewsPage />} />
+        <Route path="/goals" element={<GoalsPage />} />
+        <Route path="/pomodoro" element={<PomodoroPage />} />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AppProvider>
-      <PomodoroProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <FloatingTimer />
-            <Routes>
-              <Route path="/auth" element={<AuthPage />} />
-              <Route element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }>
-                <Route path="/" element={<Index />} />
-                <Route path="/daily-log" element={<DailyLogPage />} />
-                <Route path="/learning" element={<LearningPage />} />
-                <Route path="/interviews" element={<InterviewsPage />} />
-                <Route path="/goals" element={<GoalsPage />} />
-                <Route path="/pomodoro" element={<PomodoroPage />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </PomodoroProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <PomodoroProvider>
+            <AppContent />
+          </PomodoroProvider>
+        </BrowserRouter>
+      </TooltipProvider>
     </AppProvider>
   </QueryClientProvider>
 );
