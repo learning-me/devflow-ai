@@ -1,13 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { DailyLog, LearningTopic, Interview, Goal, StreakData, PomodoroSession, Tag } from '@/types';
+import { LearningTopic, Interview, Goal, StreakData, PomodoroSession, Tag, Subtopic } from '@/types';
 import { toast } from 'sonner';
 
 export function useSupabaseData() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
   const [learningTopics, setLearningTopics] = useState<LearningTopic[]>([]);
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -19,6 +18,42 @@ export function useSupabaseData() {
   });
   const [pomodoroSessions, setPomodoroSessions] = useState<PomodoroSession[]>([]);
 
+  // Check and reset streak if no activity yesterday
+  const checkAndResetStreak = useCallback(async () => {
+    if (!user) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    // Check if any topic was completed yesterday
+    const { data: topicsCompletedYesterday } = await supabase
+      .from('learning_topics')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('completed_at', yesterday)
+      .limit(1);
+
+    const hasActivityYesterday = topicsCompletedYesterday && topicsCompletedYesterday.length > 0;
+
+    // If last completed date is not today and not yesterday, reset streak
+    if (streakData.lastCompletedDate !== today && streakData.lastCompletedDate !== yesterday && !hasActivityYesterday) {
+      if (streakData.currentStreak > 0) {
+        const { error } = await supabase.from('streak_data').update({
+          current_streak: 0,
+          last_completed_date: null,
+        }).eq('user_id', user.id);
+
+        if (!error) {
+          setStreakData(prev => ({
+            ...prev,
+            currentStreak: 0,
+            lastCompletedDate: null,
+          }));
+        }
+      }
+    }
+  }, [user, streakData.lastCompletedDate, streakData.currentStreak]);
+
   // Fetch all data
   const fetchData = useCallback(async () => {
     if (!user) {
@@ -28,8 +63,7 @@ export function useSupabaseData() {
 
     setLoading(true);
     try {
-      const [logsRes, topicsRes, interviewsRes, goalsRes, streakRes, pomodoroRes] = await Promise.all([
-        supabase.from('daily_logs').select('*').order('date', { ascending: false }),
+      const [topicsRes, interviewsRes, goalsRes, streakRes, pomodoroRes] = await Promise.all([
         supabase.from('learning_topics').select('*').order('created_at', { ascending: false }),
         supabase.from('interviews').select('*').order('applied_date', { ascending: false }),
         supabase.from('goals').select('*').order('created_at', { ascending: false }),
@@ -37,9 +71,6 @@ export function useSupabaseData() {
         supabase.from('pomodoro_sessions').select('*').order('completed_at', { ascending: false }),
       ]);
 
-      if (logsRes.data) {
-        setDailyLogs(logsRes.data.map(mapDailyLog));
-      }
       if (topicsRes.data) {
         setLearningTopics(topicsRes.data.map(mapLearningTopic));
       }
@@ -78,55 +109,12 @@ export function useSupabaseData() {
     fetchData();
   }, [fetchData]);
 
-  // Daily Logs
-  const addDailyLog = async (log: Omit<DailyLog, 'id' | 'createdAt'>) => {
-    if (!user) return;
-    
-    const { data, error } = await supabase.from('daily_logs').insert({
-      user_id: user.id,
-      date: log.date,
-      tasks: log.tasks,
-      notes: log.notes,
-      time_spent: log.timeSpent,
-      tags: log.tags,
-    }).select().single();
-
-    if (error) {
-      toast.error('Failed to add log');
-      return;
+  // Check streak on load
+  useEffect(() => {
+    if (!loading && user) {
+      checkAndResetStreak();
     }
-
-    if (data) {
-      setDailyLogs(prev => [mapDailyLog(data), ...prev]);
-      await updateStreak(log.date);
-    }
-  };
-
-  const updateDailyLog = async (log: DailyLog) => {
-    const { error } = await supabase.from('daily_logs').update({
-      date: log.date,
-      tasks: log.tasks,
-      notes: log.notes,
-      time_spent: log.timeSpent,
-      tags: log.tags,
-    }).eq('id', log.id);
-
-    if (error) {
-      toast.error('Failed to update log');
-      return;
-    }
-
-    setDailyLogs(prev => prev.map(l => l.id === log.id ? log : l));
-  };
-
-  const deleteDailyLog = async (id: string) => {
-    const { error } = await supabase.from('daily_logs').delete().eq('id', id);
-    if (error) {
-      toast.error('Failed to delete log');
-      return;
-    }
-    setDailyLogs(prev => prev.filter(l => l.id !== id));
-  };
+  }, [loading, user, checkAndResetStreak]);
 
   // Learning Topics
   const addLearningTopic = async (topic: Omit<LearningTopic, 'id' | 'createdAt' | 'status'>) => {
@@ -138,6 +126,8 @@ export function useSupabaseData() {
       description: topic.description,
       tags: topic.tags,
       revision_days: topic.revisionDays || [1, 3, 7],
+      subtopics: JSON.parse(JSON.stringify(topic.subtopics || [])),
+      time_spent: topic.timeSpent || 0,
     }).select().single();
 
     if (error) {
@@ -159,6 +149,8 @@ export function useSupabaseData() {
       tags: topic.tags,
       revision_days: topic.revisionDays,
       revised_on: topic.revisedOn,
+      subtopics: JSON.parse(JSON.stringify(topic.subtopics || [])),
+      time_spent: topic.timeSpent || 0,
     }).eq('id', topic.id);
 
     if (error) {
@@ -322,6 +314,15 @@ export function useSupabaseData() {
     }
   };
 
+  const deletePomodoroSession = async (id: string) => {
+    const { error } = await supabase.from('pomodoro_sessions').delete().eq('id', id);
+    if (error) {
+      toast.error('Failed to delete session');
+      return;
+    }
+    setPomodoroSessions(prev => prev.filter(s => s.id !== id));
+  };
+
   // Streak Management
   const updateStreak = async (completedDate: string) => {
     if (!user) return;
@@ -377,15 +378,11 @@ export function useSupabaseData() {
 
   return {
     loading,
-    dailyLogs,
     learningTopics,
     interviews,
     goals,
     streakData,
     pomodoroSessions,
-    addDailyLog,
-    updateDailyLog,
-    deleteDailyLog,
     addLearningTopic,
     updateLearningTopic,
     deleteLearningTopic,
@@ -397,23 +394,13 @@ export function useSupabaseData() {
     updateGoal,
     deleteGoal,
     addPomodoroSession,
+    deletePomodoroSession,
+    checkAndResetStreak,
     refetch: fetchData,
   };
 }
 
 // Mappers
-function mapDailyLog(row: any): DailyLog {
-  return {
-    id: row.id,
-    date: row.date,
-    tasks: row.tasks,
-    notes: row.notes || '',
-    timeSpent: row.time_spent,
-    tags: (row.tags || []) as Tag[],
-    createdAt: row.created_at,
-  };
-}
-
 function mapLearningTopic(row: any): LearningTopic {
   return {
     id: row.id,
@@ -425,6 +412,8 @@ function mapLearningTopic(row: any): LearningTopic {
     tags: (row.tags || []) as Tag[],
     revisionDays: row.revision_days || [1, 3, 7],
     revisedOn: row.revised_on || [],
+    subtopics: (row.subtopics || []) as Subtopic[],
+    timeSpent: row.time_spent || 0,
   };
 }
 

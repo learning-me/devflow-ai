@@ -1,4 +1,4 @@
-import { AppState, DailyLog, LearningTopic, Interview, Goal, StreakData } from '@/types';
+import { AppState, LearningTopic, Interview, Goal, StreakData } from '@/types';
 
 const STORAGE_KEY = 'devtracker_data';
 
@@ -10,7 +10,6 @@ const defaultStreakData: StreakData = {
 };
 
 const defaultState: AppState = {
-  dailyLogs: [],
   learningTopics: [],
   interviews: [],
   goals: [],

@@ -1,13 +1,10 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { AppState, DailyLog, LearningTopic, Interview, Goal, PomodoroSession } from '@/types';
+import { AppState, LearningTopic, Interview, Goal, PomodoroSession } from '@/types';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 interface AppContextType {
   state: AppState;
   loading: boolean;
-  addDailyLog: (log: Omit<DailyLog, 'id' | 'createdAt'>) => Promise<void>;
-  updateDailyLog: (log: DailyLog) => Promise<void>;
-  deleteDailyLog: (id: string) => Promise<void>;
   addLearningTopic: (topic: Omit<LearningTopic, 'id' | 'createdAt' | 'status'>) => Promise<void>;
   updateLearningTopic: (topic: LearningTopic) => Promise<void>;
   deleteLearningTopic: (id: string) => Promise<void>;
@@ -19,6 +16,8 @@ interface AppContextType {
   updateGoal: (goal: Goal) => Promise<void>;
   deleteGoal: (id: string) => Promise<void>;
   addPomodoroSession: (session: Omit<PomodoroSession, 'id'>) => Promise<void>;
+  deletePomodoroSession: (id: string) => Promise<void>;
+  checkAndResetStreak: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -26,15 +25,11 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const {
     loading,
-    dailyLogs,
     learningTopics,
     interviews,
     goals,
     streakData,
     pomodoroSessions,
-    addDailyLog,
-    updateDailyLog,
-    deleteDailyLog,
     addLearningTopic,
     updateLearningTopic,
     deleteLearningTopic,
@@ -46,10 +41,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     updateGoal,
     deleteGoal,
     addPomodoroSession,
+    deletePomodoroSession,
+    checkAndResetStreak,
   } = useSupabaseData();
 
   const state: AppState = {
-    dailyLogs,
     learningTopics,
     interviews,
     goals,
@@ -62,9 +58,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       value={{
         state,
         loading,
-        addDailyLog,
-        updateDailyLog,
-        deleteDailyLog,
         addLearningTopic,
         updateLearningTopic,
         deleteLearningTopic,
@@ -76,6 +69,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         updateGoal,
         deleteGoal,
         addPomodoroSession,
+        deletePomodoroSession,
+        checkAndResetStreak,
       }}
     >
       {children}

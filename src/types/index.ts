@@ -1,13 +1,10 @@
 export type Tag = 'frontend' | 'backend' | 'dsa' | 'devops' | 'system-design' | 'other';
 
-export interface DailyLog {
+export interface Subtopic {
   id: string;
-  date: string;
-  tasks: string;
-  notes: string;
-  timeSpent: number; // in minutes
-  tags: Tag[];
-  createdAt: string;
+  title: string;
+  completed: boolean;
+  completedAt?: string;
 }
 
 export interface LearningTopic {
@@ -20,6 +17,8 @@ export interface LearningTopic {
   tags: Tag[];
   revisionDays?: number[]; // [1, 3, 7] - days to revise after completion
   revisedOn?: string[]; // dates when revision was done
+  subtopics?: Subtopic[];
+  timeSpent?: number; // in minutes
 }
 
 export interface Question {
@@ -74,7 +73,7 @@ export interface StreakData {
 
 export interface PomodoroSession {
   id: string;
-  taskId?: string; // optional link to a daily log task
+  taskId?: string; // optional link to a learning topic
   taskName?: string;
   duration: number; // in minutes
   completedAt: string;
@@ -82,7 +81,6 @@ export interface PomodoroSession {
 }
 
 export interface AppState {
-  dailyLogs: DailyLog[];
   learningTopics: LearningTopic[];
   interviews: Interview[];
   goals: Goal[];

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, Clock, BookOpen, ExternalLink } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, BookOpen, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
 import { usePomodoro } from '@/contexts/PomodoroContext';
@@ -22,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SessionHistory } from '@/components/pomodoro/SessionHistory';
 
 const PomodoroPage: React.FC = () => {
@@ -35,14 +34,10 @@ const PomodoroPage: React.FC = () => {
     breakMinutes,
     soundEnabled,
     selectedTopicId,
-    selectedTaskId,
-    linkType,
     setWorkMinutes,
     setBreakMinutes,
     setSoundEnabled,
     setSelectedTopicId,
-    setSelectedTaskId,
-    setLinkType,
     toggleTimer,
     resetTimer,
     setIsFloating,
@@ -63,9 +58,6 @@ const PomodoroPage: React.FC = () => {
   const activeTopics = state.learningTopics.filter(
     (t) => t.status === 'pending' || t.status === 'in-progress'
   );
-
-  // Get recent tasks
-  const recentTasks = state.dailyLogs.slice(0, 10);
 
   const handleSaveSettings = () => {
     setWorkMinutes(tempWork);
@@ -143,55 +135,29 @@ const PomodoroPage: React.FC = () => {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Left Column - Timer */}
         <div className="space-y-6">
-          {/* Link to Topic or Task */}
+          {/* Link to Topic */}
           <Card>
             <CardContent className="p-4">
-              <Tabs value={linkType} onValueChange={(v) => setLinkType(v as 'task' | 'topic')}>
-                <TabsList className="w-full mb-4">
-                  <TabsTrigger value="topic" className="flex-1 gap-2">
-                    <BookOpen className="w-4 h-4" />
-                    Learning Topic
-                  </TabsTrigger>
-                  <TabsTrigger value="task" className="flex-1 gap-2">
-                    <Clock className="w-4 h-4" />
-                    Daily Task
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="topic" className="space-y-2">
-                  <Label htmlFor="topic-select">Link to Learning Topic</Label>
-                  <Select value={selectedTopicId} onValueChange={setSelectedTopicId}>
-                    <SelectTrigger id="topic-select">
-                      <SelectValue placeholder="Select a topic to focus on" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No topic linked</SelectItem>
-                      {activeTopics.map((topic) => (
-                        <SelectItem key={topic.id} value={topic.id}>
-                          {topic.title.slice(0, 40)}
-                          {topic.title.length > 40 ? '...' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TabsContent>
-                <TabsContent value="task" className="space-y-2">
-                  <Label htmlFor="task-select">Link to Daily Task</Label>
-                  <Select value={selectedTaskId} onValueChange={setSelectedTaskId}>
-                    <SelectTrigger id="task-select">
-                      <SelectValue placeholder="Select a task to track" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No task linked</SelectItem>
-                      {recentTasks.map((task) => (
-                        <SelectItem key={task.id} value={task.id}>
-                          {task.tasks.split('\n')[0].slice(0, 40)}
-                          {task.tasks.split('\n')[0].length > 40 ? '...' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </TabsContent>
-              </Tabs>
+              <div className="space-y-2">
+                <Label htmlFor="topic-select" className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Link to Learning Topic
+                </Label>
+                <Select value={selectedTopicId} onValueChange={setSelectedTopicId}>
+                  <SelectTrigger id="topic-select">
+                    <SelectValue placeholder="Select a topic to focus on" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No topic linked</SelectItem>
+                    {activeTopics.map((topic) => (
+                      <SelectItem key={topic.id} value={topic.id}>
+                        {topic.title.slice(0, 40)}
+                        {topic.title.length > 40 ? '...' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
 
