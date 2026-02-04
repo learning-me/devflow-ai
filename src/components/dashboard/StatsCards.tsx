@@ -2,6 +2,7 @@ import React from 'react';
 import { BookOpen, CheckCircle, Clock, Briefcase } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
+import { formatTime } from '@/lib/storage';
 
 export const StatsCards: React.FC = () => {
   const { state } = useApp();
@@ -12,9 +13,13 @@ export const StatsCards: React.FC = () => {
   const pendingTopics = state.learningTopics.filter(
     (t) => t.status === 'pending' || t.status === 'in-progress'
   ).length;
-  const totalTimeToday = state.dailyLogs
-    .filter((log) => log.date === new Date().toISOString().split('T')[0])
-    .reduce((acc, log) => acc + log.timeSpent, 0);
+  
+  // Calculate total time spent from learning topics
+  const totalTimeSpent = state.learningTopics.reduce(
+    (acc, topic) => acc + (topic.timeSpent || 0), 
+    0
+  );
+
   const activeInterviews = state.interviews.filter(
     (i) => i.status !== 'rejected' && i.status !== 'offer'
   ).length;
@@ -35,8 +40,8 @@ export const StatsCards: React.FC = () => {
       bgColor: 'bg-accent/10',
     },
     {
-      label: 'Time Today',
-      value: `${Math.floor(totalTimeToday / 60)}h ${totalTimeToday % 60}m`,
+      label: 'Total Time',
+      value: formatTime(totalTimeSpent),
       icon: Clock,
       color: 'text-primary',
       bgColor: 'bg-primary/10',

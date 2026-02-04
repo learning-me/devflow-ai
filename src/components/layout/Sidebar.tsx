@@ -5,7 +5,6 @@ import {
   BookOpen, 
   Briefcase, 
   Target, 
-  Calendar,
   Flame,
   Menu,
   X,
@@ -24,7 +23,6 @@ interface SidebarProps {
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Daily Log', href: '/daily-log', icon: Calendar },
   { name: 'Learning', href: '/learning', icon: BookOpen },
   { name: 'Pomodoro', href: '/pomodoro', icon: Timer },
   { name: 'Interviews', href: '/interviews', icon: Briefcase },

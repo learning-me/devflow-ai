@@ -9,16 +9,12 @@ interface PomodoroContextType {
   breakMinutes: number;
   soundEnabled: boolean;
   selectedTopicId: string;
-  selectedTaskId: string;
-  linkType: 'task' | 'topic';
   isFloating: boolean;
   floatingPosition: { x: number; y: number };
   setWorkMinutes: (mins: number) => void;
   setBreakMinutes: (mins: number) => void;
   setSoundEnabled: (enabled: boolean) => void;
   setSelectedTopicId: (id: string) => void;
-  setSelectedTaskId: (id: string) => void;
-  setLinkType: (type: 'task' | 'topic') => void;
   toggleTimer: () => void;
   resetTimer: () => void;
   setIsFloating: (floating: boolean) => void;
@@ -40,8 +36,6 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [isBreak, setIsBreak] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [selectedTopicId, setSelectedTopicId] = useState<string>('none');
-  const [selectedTaskId, setSelectedTaskId] = useState<string>('none');
-  const [linkType, setLinkType] = useState<'task' | 'topic'>('topic');
   const [isFloating, setIsFloating] = useState(false);
   const [floatingPosition, setFloatingPosition] = useState({ x: 20, y: 20 });
 
@@ -51,7 +45,6 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   const activeTopics = state.learningTopics.filter(
     (t) => t.status === 'pending' || t.status === 'in-progress'
   );
-  const recentTasks = state.dailyLogs.slice(0, 10);
 
   const playAlarm = useCallback(() => {
     if (!soundEnabled) return;
@@ -80,30 +73,26 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [soundEnabled]);
 
   const getSessionName = useCallback(() => {
-    if (linkType === 'topic' && selectedTopicId !== 'none') {
+    if (selectedTopicId !== 'none') {
       const topic = activeTopics.find((t) => t.id === selectedTopicId);
       return topic?.title?.slice(0, 50);
-    } else if (linkType === 'task' && selectedTaskId !== 'none') {
-      const task = recentTasks.find((t) => t.id === selectedTaskId);
-      return task?.tasks?.split('\n')[0]?.slice(0, 50);
     }
     return undefined;
-  }, [linkType, selectedTopicId, selectedTaskId, activeTopics, recentTasks]);
+  }, [selectedTopicId, activeTopics]);
 
   const recordSession = useCallback(
     (type: 'work' | 'break', duration: number) => {
-      const taskId = linkType === 'task' && selectedTaskId !== 'none' ? selectedTaskId : undefined;
-      const topicId = linkType === 'topic' && selectedTopicId !== 'none' ? selectedTopicId : undefined;
+      const topicId = selectedTopicId !== 'none' ? selectedTopicId : undefined;
 
       addPomodoroSession({
-        taskId: taskId || topicId,
+        taskId: topicId,
         taskName: getSessionName(),
         duration,
         completedAt: new Date().toISOString(),
         type,
       });
     },
-    [addPomodoroSession, linkType, selectedTaskId, selectedTopicId, getSessionName]
+    [addPomodoroSession, selectedTopicId, getSessionName]
   );
 
   useEffect(() => {
@@ -160,16 +149,12 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         breakMinutes,
         soundEnabled,
         selectedTopicId,
-        selectedTaskId,
-        linkType,
         isFloating,
         floatingPosition,
         setWorkMinutes,
         setBreakMinutes,
         setSoundEnabled,
         setSelectedTopicId,
-        setSelectedTaskId,
-        setLinkType,
         toggleTimer,
         resetTimer,
         setIsFloating,

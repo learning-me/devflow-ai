@@ -137,7 +137,9 @@ export type Database = {
           revised_on: string[] | null
           revision_days: number[] | null
           status: string
+          subtopics: Json | null
           tags: string[] | null
+          time_spent: number | null
           title: string
           user_id: string
         }
@@ -149,7 +151,9 @@ export type Database = {
           revised_on?: string[] | null
           revision_days?: number[] | null
           status?: string
+          subtopics?: Json | null
           tags?: string[] | null
+          time_spent?: number | null
           title: string
           user_id: string
         }
@@ -161,7 +165,9 @@ export type Database = {
           revised_on?: string[] | null
           revision_days?: number[] | null
           status?: string
+          subtopics?: Json | null
           tags?: string[] | null
+          time_spent?: number | null
           title?: string
           user_id?: string
         }

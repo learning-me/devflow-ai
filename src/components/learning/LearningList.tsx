@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
-import { formatDisplayDate } from '@/lib/storage';
+import { formatDisplayDate, formatTime } from '@/lib/storage';
 import { TagBadge } from '@/components/ui/TagBadge';
-import { Trash2, CheckCircle, Clock, BookOpen, RotateCcw } from 'lucide-react';
-import { LearningTopic } from '@/types';
+import { Trash2, CheckCircle, Clock, BookOpen, RotateCcw, ChevronDown, ChevronUp, Plus, Timer } from 'lucide-react';
+import { LearningTopic, Subtopic } from '@/types';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, format } from 'date-fns';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 export const LearningList: React.FC = () => {
   const { state, deleteLearningTopic, updateLearningTopic, completeLearning } = useApp();
@@ -16,6 +21,10 @@ export const LearningList: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingTopicId, setDeletingTopicId] = useState<string | null>(null);
   const [deletingTopicName, setDeletingTopicName] = useState<string>('');
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+  const [addingTimeToTopic, setAddingTimeToTopic] = useState<string | null>(null);
+  const [timeToAdd, setTimeToAdd] = useState('');
+  const [newSubtopicInputs, setNewSubtopicInputs] = useState<Record<string, string>>({});
 
   // Get topics that need revision today
   const getRevisionDue = (topic: LearningTopic): number | null => {
@@ -30,7 +39,6 @@ export const LearningList: React.FC = () => {
     
     for (const day of revisionDays) {
       if (daysSinceCompletion >= day) {
-        // Check if already revised for this day
         const revisionDate = new Date(completedDate);
         revisionDate.setDate(revisionDate.getDate() + day);
         const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
@@ -64,6 +72,69 @@ export const LearningList: React.FC = () => {
     updateLearningTopic({
       ...topic,
       revisedOn: [...revisedOn, revisionDateStr],
+    });
+  };
+
+  const toggleSubtopic = (topic: LearningTopic, subtopicId: string) => {
+    const updatedSubtopics = (topic.subtopics || []).map((st) =>
+      st.id === subtopicId
+        ? { ...st, completed: !st.completed, completedAt: !st.completed ? new Date().toISOString() : undefined }
+        : st
+    );
+    
+    updateLearningTopic({
+      ...topic,
+      subtopics: updatedSubtopics,
+    });
+  };
+
+  const addSubtopicToTopic = (topic: LearningTopic) => {
+    const newSubtopicTitle = newSubtopicInputs[topic.id]?.trim();
+    if (!newSubtopicTitle) return;
+
+    const newSubtopic: Subtopic = {
+      id: generateId(),
+      title: newSubtopicTitle,
+      completed: false,
+    };
+
+    updateLearningTopic({
+      ...topic,
+      subtopics: [...(topic.subtopics || []), newSubtopic],
+    });
+
+    setNewSubtopicInputs((prev) => ({ ...prev, [topic.id]: '' }));
+  };
+
+  const removeSubtopicFromTopic = (topic: LearningTopic, subtopicId: string) => {
+    updateLearningTopic({
+      ...topic,
+      subtopics: (topic.subtopics || []).filter((st) => st.id !== subtopicId),
+    });
+  };
+
+  const addTimeToTopic = (topic: LearningTopic) => {
+    const minutes = parseInt(timeToAdd);
+    if (isNaN(minutes) || minutes <= 0) return;
+
+    updateLearningTopic({
+      ...topic,
+      timeSpent: (topic.timeSpent || 0) + minutes,
+    });
+
+    setAddingTimeToTopic(null);
+    setTimeToAdd('');
+  };
+
+  const toggleExpanded = (topicId: string) => {
+    setExpandedTopics((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(topicId)) {
+        newSet.delete(topicId);
+      } else {
+        newSet.add(topicId);
+      }
+      return newSet;
     });
   };
 
@@ -116,107 +187,248 @@ export const LearningList: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-4">
         {filteredTopics.map((topic) => {
           const revisionDue = getRevisionDue(topic);
+          const isExpanded = expandedTopics.has(topic.id);
+          const subtopics = topic.subtopics || [];
+          const completedSubtopics = subtopics.filter((st) => st.completed).length;
           
           return (
             <Card key={topic.id} className="card-hover">
               <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      {topic.status === 'completed' ? (
-                        <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(topic.id)}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        {topic.status === 'completed' ? (
+                          <CheckCircle className="w-5 h-5 text-success flex-shrink-0" />
+                        ) : (
+                          <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                        )}
+                        <h3 className="font-medium truncate">{topic.title}</h3>
+                        {subtopics.length > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            ({completedSubtopics}/{subtopics.length})
+                          </span>
+                        )}
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-auto">
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </CollapsibleTrigger>
+                      </div>
+
+                      {topic.description && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                          {topic.description}
+                        </p>
                       )}
-                      <h3 className="font-medium truncate">{topic.title}</h3>
+
+                      {/* Time spent badge */}
+                      {(topic.timeSpent || 0) > 0 && (
+                        <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full mb-3">
+                          <Timer className="w-3 h-3" />
+                          {formatTime(topic.timeSpent || 0)}
+                        </div>
+                      )}
+
+                      {/* Revision badges for completed topics */}
+                      {topic.status === 'completed' && topic.completedAt && (
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {(topic.revisionDays || [1, 3, 7]).map((day) => {
+                            const completedDate = parseISO(topic.completedAt!);
+                            const revisionDate = new Date(completedDate);
+                            revisionDate.setDate(revisionDate.getDate() + day);
+                            const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
+                            const isRevised = (topic.revisedOn || []).includes(revisionDateStr);
+                            const isDue = revisionDue === day;
+                            
+                            return (
+                              <span
+                                key={day}
+                                className={cn(
+                                  'text-xs px-2 py-1 rounded-full font-medium',
+                                  isRevised 
+                                    ? 'bg-success/20 text-success'
+                                    : isDue
+                                    ? 'bg-destructive/20 text-destructive'
+                                    : 'bg-muted text-muted-foreground'
+                                )}
+                              >
+                                Day {day} {isRevised ? '✓' : isDue ? '!' : ''}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {topic.tags.map((tag) => (
+                          <TagBadge key={tag} tag={tag} />
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span>Added {formatDisplayDate(topic.createdAt)}</span>
+                        {topic.completedAt && (
+                          <span className="text-success">
+                            Completed {formatDisplayDate(topic.completedAt)}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    {topic.description && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {topic.description}
-                      </p>
-                    )}
+                    <div className="flex flex-col gap-2">
+                      {topic.status === 'pending' || topic.status === 'in-progress' ? (
+                        <Button size="sm" onClick={() => handleMarkComplete(topic)} className="gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          Complete
+                        </Button>
+                      ) : revisionDue !== null ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRevise(topic, revisionDue)}
+                          className="gap-1.5 border-destructive text-destructive hover:bg-destructive/10"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          Revise
+                        </Button>
+                      ) : null}
+                      
+                      {/* Add time button */}
+                      {addingTimeToTopic === topic.id ? (
+                        <div className="flex gap-1">
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="min"
+                            className="w-16 h-8 text-xs"
+                            value={timeToAdd}
+                            onChange={(e) => setTimeToAdd(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') addTimeToTopic(topic);
+                              if (e.key === 'Escape') {
+                                setAddingTimeToTopic(null);
+                                setTimeToAdd('');
+                              }
+                            }}
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-2"
+                            onClick={() => addTimeToTopic(topic)}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setAddingTimeToTopic(topic.id)}
+                          className="text-muted-foreground hover:text-primary"
+                        >
+                          <Timer className="w-4 h-4" />
+                        </Button>
+                      )}
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setDeletingTopicId(topic.id);
+                          setDeletingTopicName(topic.title);
+                          setDeleteDialogOpen(true);
+                        }}
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
 
-                    {/* Revision badges for completed topics */}
-                    {topic.status === 'completed' && topic.completedAt && (
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {(topic.revisionDays || [1, 3, 7]).map((day) => {
-                          const completedDate = parseISO(topic.completedAt!);
-                          const revisionDate = new Date(completedDate);
-                          revisionDate.setDate(revisionDate.getDate() + day);
-                          const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
-                          const isRevised = (topic.revisedOn || []).includes(revisionDateStr);
-                          const isDue = revisionDue === day;
-                          
-                          return (
-                            <span
-                              key={day}
+                  <CollapsibleContent>
+                    <div className="mt-4 pt-4 border-t border-border space-y-3">
+                      <h4 className="text-sm font-medium">Subtopics</h4>
+                      
+                      {subtopics.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No subtopics added yet.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {subtopics.map((st) => (
+                            <div
+                              key={st.id}
                               className={cn(
-                                'text-xs px-2 py-1 rounded-full font-medium',
-                                isRevised 
-                                  ? 'bg-success/20 text-success'
-                                  : isDue
-                                  ? 'bg-destructive/20 text-destructive'
-                                  : 'bg-muted text-muted-foreground'
+                                'flex items-center gap-3 p-2 rounded-lg transition-colors',
+                                st.completed ? 'bg-success/10' : 'bg-secondary/50'
                               )}
                             >
-                              Day {day} {isRevised ? '✓' : isDue ? '!' : ''}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {topic.tags.map((tag) => (
-                        <TagBadge key={tag} tag={tag} />
-                      ))}
-                    </div>
-
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span>Added {formatDisplayDate(topic.createdAt)}</span>
-                      {topic.completedAt && (
-                        <span className="text-success">
-                          Completed {formatDisplayDate(topic.completedAt)}
-                        </span>
+                              <Checkbox
+                                checked={st.completed}
+                                onCheckedChange={() => toggleSubtopic(topic, st.id)}
+                              />
+                              <span
+                                className={cn(
+                                  'flex-1 text-sm',
+                                  st.completed && 'line-through text-muted-foreground'
+                                )}
+                              >
+                                {st.title}
+                              </span>
+                              {st.completedAt && (
+                                <span className="text-xs text-muted-foreground">
+                                  {formatDisplayDate(st.completedAt)}
+                                </span>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => removeSubtopicFromTopic(topic, st.id)}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                    </div>
-                  </div>
 
-                  <div className="flex flex-col gap-2">
-                    {topic.status === 'pending' || topic.status === 'in-progress' ? (
-                      <Button size="sm" onClick={() => handleMarkComplete(topic)} className="gap-1.5">
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Complete
-                      </Button>
-                    ) : revisionDue !== null ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRevise(topic, revisionDue)}
-                        className="gap-1.5 border-destructive text-destructive hover:bg-destructive/10"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        Revise
-                      </Button>
-                    ) : null}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setDeletingTopicId(topic.id);
-                        setDeletingTopicName(topic.title);
-                        setDeleteDialogOpen(true);
-                      }}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+                      {/* Add new subtopic */}
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add a subtopic..."
+                          value={newSubtopicInputs[topic.id] || ''}
+                          onChange={(e) =>
+                            setNewSubtopicInputs((prev) => ({ ...prev, [topic.id]: e.target.value }))
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addSubtopicToTopic(topic);
+                            }
+                          }}
+                          className="h-8 text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={() => addSubtopicToTopic(topic)}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </CardContent>
             </Card>
           );

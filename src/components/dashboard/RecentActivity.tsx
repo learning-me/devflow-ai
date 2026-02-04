@@ -3,57 +3,61 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
 import { formatDisplayDate, formatTime } from '@/lib/storage';
 import { TagBadge } from '@/components/ui/TagBadge';
-import { Clock, BookOpen, Briefcase } from 'lucide-react';
+import { BookOpen, Timer } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const RecentActivity: React.FC = () => {
   const { state } = useApp();
 
-  const recentLogs = state.dailyLogs.slice(0, 3);
   const recentTopics = state.learningTopics.slice(0, 3);
+  const recentSessions = state.pomodoroSessions.slice(0, 5);
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
-      {/* Recent Daily Logs */}
+      {/* Recent Pomodoro Sessions */}
       <Card className="card-hover">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            Recent Work
+            <Timer className="w-5 h-5 text-primary" />
+            Recent Sessions
           </CardTitle>
           <Link
-            to="/daily-log"
+            to="/pomodoro"
             className="text-sm text-accent hover:underline"
           >
             View all
           </Link>
         </CardHeader>
         <CardContent className="space-y-3">
-          {recentLogs.length === 0 ? (
+          {recentSessions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
-              No entries yet. Start logging your work!
+              No sessions yet. Start a Pomodoro timer!
             </p>
           ) : (
-            recentLogs.map((log) => (
+            recentSessions.map((session) => (
               <div
-                key={log.id}
+                key={session.id}
                 className="p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium">
-                    {formatDisplayDate(log.date)}
+                    {session.taskName || 'Focus Session'}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {formatTime(log.timeSpent)}
+                    {formatTime(session.duration)}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                  {log.tasks}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {log.tags.slice(0, 3).map((tag) => (
-                    <TagBadge key={tag} tag={tag} />
-                  ))}
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+                    session.type === 'work' 
+                      ? 'bg-primary/20 text-primary' 
+                      : 'bg-success/20 text-success'
+                  }`}>
+                    {session.type === 'work' ? 'Work' : 'Break'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDisplayDate(session.completedAt)}
+                  </span>
                 </div>
               </div>
             ))
@@ -98,6 +102,11 @@ export const RecentActivity: React.FC = () => {
                     {topic.status}
                   </span>
                 </div>
+                {topic.timeSpent && topic.timeSpent > 0 && (
+                  <div className="text-xs text-muted-foreground mb-2">
+                    Time spent: {formatTime(topic.timeSpent)}
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-1">
                   {topic.tags.slice(0, 3).map((tag) => (
                     <TagBadge key={tag} tag={tag} />

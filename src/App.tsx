@@ -9,7 +9,6 @@ import { Layout } from "@/components/layout/Layout";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { FloatingTimer } from "@/components/pomodoro/FloatingTimer";
 import Index from "./pages/Index";
-import DailyLogPage from "./pages/DailyLogPage";
 import LearningPage from "./pages/LearningPage";
 import InterviewsPage from "./pages/InterviewsPage";
 import GoalsPage from "./pages/GoalsPage";
@@ -30,7 +29,6 @@ const AppContent = () => (
         </ProtectedRoute>
       }>
         <Route path="/" element={<Index />} />
-        <Route path="/daily-log" element={<DailyLogPage />} />
         <Route path="/learning" element={<LearningPage />} />
         <Route path="/interviews" element={<InterviewsPage />} />
         <Route path="/goals" element={<GoalsPage />} />
