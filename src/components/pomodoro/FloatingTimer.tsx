@@ -119,7 +119,7 @@ export const FloatingTimer: React.FC = () => {
       >
         <div className="flex items-center gap-2">
           <GripHorizontal className="w-4 h-4 text-muted-foreground" />
-          <span className={cn('text-xs font-medium', isBreak ? 'text-green-500' : 'text-primary')}>
+          <span className={cn('text-xs font-medium', isBreak ? 'text-success' : 'text-accent')}>
             {isBreak ? 'Break' : 'Focus'}
           </span>
         </div>
@@ -164,7 +164,7 @@ export const FloatingTimer: React.FC = () => {
               cy="28"
               r="24"
               fill="none"
-              stroke={isBreak ? 'hsl(var(--success))' : 'hsl(var(--primary))'}
+              stroke={isBreak ? 'hsl(var(--success))' : 'hsl(var(--accent))'}
               strokeWidth="4"
               strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 24}`}
@@ -195,7 +195,7 @@ export const FloatingTimer: React.FC = () => {
             </Button>
             <Button
               size="icon"
-              className={cn('h-7 w-7', isBreak && 'bg-green-500 hover:bg-green-600')}
+              className={cn('h-7 w-7', isBreak && 'bg-success hover:bg-success/90')}
               onClick={toggleTimer}
             >
               {isRunning ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}

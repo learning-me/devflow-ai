@@ -54,10 +54,8 @@ const PomodoroPage: React.FC = () => {
     (session) => isToday(parseISO(session.completedAt)) && session.type === 'work'
   );
 
-  // Get learning topics for selection
-  const activeTopics = state.learningTopics.filter(
-    (t) => t.status === 'pending' || t.status === 'in-progress'
-  );
+  // Get all learning topics for selection (including completed)
+  const allTopics = state.learningTopics;
 
   const handleSaveSettings = () => {
     setWorkMinutes(tempWork);
@@ -149,10 +147,11 @@ const PomodoroPage: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No topic linked</SelectItem>
-                    {activeTopics.map((topic) => (
+                    {allTopics.map((topic) => (
                       <SelectItem key={topic.id} value={topic.id}>
                         {topic.title.slice(0, 40)}
                         {topic.title.length > 40 ? '...' : ''}
+                        {topic.status === 'completed' && ' ✓'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -164,7 +163,7 @@ const PomodoroPage: React.FC = () => {
           {/* Main Timer */}
           <Card>
             <CardHeader className="text-center pb-2">
-              <CardTitle className={cn('text-lg font-semibold', isBreak ? 'text-green-500' : 'text-primary')}>
+              <CardTitle className={cn('text-lg font-semibold', isBreak ? 'text-success' : 'text-foreground')}>
                 {isBreak ? '☕ Break Time' : '🔥 Focus Time'}
               </CardTitle>
             </CardHeader>
@@ -179,7 +178,7 @@ const PomodoroPage: React.FC = () => {
                       cy="128"
                       r="120"
                       fill="none"
-                      stroke={isBreak ? 'hsl(var(--success))' : 'hsl(var(--primary))'}
+                      stroke={isBreak ? 'hsl(var(--success))' : 'hsl(var(--accent))'}
                       strokeWidth="12"
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 120}`}
@@ -189,7 +188,7 @@ const PomodoroPage: React.FC = () => {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-6xl font-bold">{formatTime(timeLeft)}</span>
-                    <span className={cn('text-sm font-medium mt-2', isBreak ? 'text-green-500' : 'text-primary')}>
+                    <span className={cn('text-sm font-medium mt-2', isBreak ? 'text-success' : 'text-accent')}>
                       {isBreak ? `${breakMinutes} min break` : `${workMinutes} min session`}
                     </span>
                     {getSessionName() && (
@@ -208,7 +207,7 @@ const PomodoroPage: React.FC = () => {
                   <Button
                     size="lg"
                     onClick={toggleTimer}
-                    className={cn('h-16 w-32 text-lg gap-2', isBreak && 'bg-green-500 hover:bg-green-600')}
+                    className={cn('h-16 w-32 text-lg gap-2', isBreak && 'bg-success hover:bg-success/90')}
                   >
                     {isRunning ? (
                       <>

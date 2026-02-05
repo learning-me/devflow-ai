@@ -29,9 +29,9 @@ const PomodoroContext = createContext<PomodoroContextType | undefined>(undefined
 export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { state, addPomodoroSession } = useApp();
 
-  const [workMinutes, setWorkMinutes] = useState(25);
-  const [breakMinutes, setBreakMinutes] = useState(5);
-  const [timeLeft, setTimeLeft] = useState(workMinutes * 60);
+  const [workMinutes, setWorkMinutesState] = useState(25);
+  const [breakMinutes, setBreakMinutesState] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -39,12 +39,26 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [isFloating, setIsFloating] = useState(false);
   const [floatingPosition, setFloatingPosition] = useState({ x: 20, y: 20 });
 
+  // Custom setters that also update timeLeft when not running
+  const setWorkMinutes = useCallback((mins: number) => {
+    setWorkMinutesState(mins);
+    if (!isRunning && !isBreak) {
+      setTimeLeft(mins * 60);
+    }
+  }, [isRunning, isBreak]);
+
+  const setBreakMinutes = useCallback((mins: number) => {
+    setBreakMinutesState(mins);
+    if (!isRunning && isBreak) {
+      setTimeLeft(mins * 60);
+    }
+  }, [isRunning, isBreak]);
+
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const activeTopics = state.learningTopics.filter(
-    (t) => t.status === 'pending' || t.status === 'in-progress'
-  );
+  // Show all topics (not just active) for linking to pomodoro sessions
+  const allTopics = state.learningTopics;
 
   const playAlarm = useCallback(() => {
     if (!soundEnabled) return;
@@ -74,11 +88,11 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const getSessionName = useCallback(() => {
     if (selectedTopicId !== 'none') {
-      const topic = activeTopics.find((t) => t.id === selectedTopicId);
+      const topic = allTopics.find((t) => t.id === selectedTopicId);
       return topic?.title?.slice(0, 50);
     }
     return undefined;
-  }, [selectedTopicId, activeTopics]);
+  }, [selectedTopicId, allTopics]);
 
   const recordSession = useCallback(
     (type: 'work' | 'break', duration: number) => {
