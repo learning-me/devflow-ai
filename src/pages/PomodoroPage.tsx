@@ -178,7 +178,7 @@ const PomodoroPage: React.FC = () => {
                       cy="128"
                       r="120"
                       fill="none"
-                      stroke={isBreak ? 'hsl(var(--success))' : 'hsl(var(--accent))'}
+                      stroke={isBreak ? 'hsl(var(--success))' : 'hsl(var(--foreground))'}
                       strokeWidth="12"
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 120}`}
@@ -188,7 +188,7 @@ const PomodoroPage: React.FC = () => {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-6xl font-bold">{formatTime(timeLeft)}</span>
-                    <span className={cn('text-sm font-medium mt-2', isBreak ? 'text-success' : 'text-accent')}>
+                    <span className={cn('text-sm font-medium mt-2', isBreak ? 'text-success' : 'text-muted-foreground')}>
                       {isBreak ? `${breakMinutes} min break` : `${workMinutes} min session`}
                     </span>
                     {getSessionName() && (
