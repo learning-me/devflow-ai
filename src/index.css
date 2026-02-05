@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Clean minimal palette - Light mode */
+    /* Clean monochrome minimal palette - Light mode */
     --background: 0 0% 99%;
     --foreground: 0 0% 9%;
 
@@ -16,8 +16,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 9%;
 
-    /* Soft blue-gray for primary */
-    --primary: 220 13% 26%;
+    /* Dark gray for primary */
+    --primary: 0 0% 15%;
     --primary-foreground: 0 0% 100%;
 
     /* Light gray for secondary */
@@ -27,87 +27,87 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    /* Blue accent for interactive elements */
-    --accent: 220 70% 50%;
+    /* Darker gray accent for interactive elements */
+    --accent: 0 0% 20%;
     --accent-foreground: 0 0% 100%;
 
-    /* Status colors - softer tones */
-    --success: 152 60% 40%;
+    /* Status colors - muted tones */
+    --success: 152 50% 38%;
     --success-foreground: 0 0% 100%;
     
-    --warning: 38 75% 50%;
-    --warning-foreground: 0 0% 100%;
-
-    --destructive: 0 65% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 91%;
-    --input: 0 0% 91%;
-    --ring: 220 70% 50%;
-
-    --radius: 0.5rem;
-
-    /* Custom design tokens */
-    --streak-glow: 25 90% 55%;
-    --tag-frontend: 210 70% 50%;
-    --tag-backend: 270 55% 50%;
-    --tag-dsa: 152 55% 40%;
-    --tag-default: 0 0% 50%;
-
-    /* Sidebar tokens */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 25%;
-    --sidebar-primary: 220 13% 26%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 94%;
-    --sidebar-accent-foreground: 0 0% 15%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 220 70% 50%;
-  }
-
-  .dark {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 95%;
-
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 95%;
-
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 95%;
-
-    --primary: 0 0% 95%;
-    --primary-foreground: 0 0% 9%;
-
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 85%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 55%;
-
-    --accent: 220 70% 55%;
-    --accent-foreground: 0 0% 100%;
-
-    --success: 152 55% 45%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 38 70% 50%;
+    --warning: 38 65% 48%;
     --warning-foreground: 0 0% 100%;
 
     --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 220 70% 55%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 30%;
+
+    --radius: 0.5rem;
+
+    /* Custom design tokens */
+    --streak-glow: 38 80% 50%;
+    --tag-frontend: 0 0% 35%;
+    --tag-backend: 0 0% 45%;
+    --tag-dsa: 0 0% 40%;
+    --tag-default: 0 0% 50%;
+
+    /* Sidebar tokens */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 25%;
+    --sidebar-primary: 0 0% 15%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 30%;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 92%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 92%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 92%;
+
+    --primary: 0 0% 92%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 80%;
+
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 55%;
+
+    --accent: 0 0% 85%;
+    --accent-foreground: 0 0% 9%;
+
+    --success: 152 45% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 60% 48%;
+    --warning-foreground: 0 0% 100%;
+
+    --destructive: 0 50% 48%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 70%;
 
     --sidebar-background: 0 0% 8%;
     --sidebar-foreground: 0 0% 85%;
-    --sidebar-primary: 0 0% 95%;
+    --sidebar-primary: 0 0% 92%;
     --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 0 0% 14%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 220 70% 55%;
+    --sidebar-accent: 0 0% 16%;
+    --sidebar-accent-foreground: 0 0% 92%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 0 0% 70%;
   }
 }
 
@@ -132,11 +132,11 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full;
+    @apply bg-muted-foreground/30 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
+    @apply bg-muted-foreground/50;
   }
 }
 
@@ -153,7 +153,7 @@
   }
 
   .card-hover:hover {
-    @apply shadow-md border-border/80;
+    @apply shadow-md border-muted-foreground/20;
   }
 
   /* Notion-style content blocks */
@@ -167,22 +167,22 @@
   }
 
   .tag-frontend {
-    background-color: hsl(var(--tag-frontend) / 0.12);
+    background-color: hsl(var(--tag-frontend) / 0.15);
     color: hsl(var(--tag-frontend));
   }
 
   .tag-backend {
-    background-color: hsl(var(--tag-backend) / 0.12);
+    background-color: hsl(var(--tag-backend) / 0.15);
     color: hsl(var(--tag-backend));
   }
 
   .tag-dsa {
-    background-color: hsl(var(--tag-dsa) / 0.12);
+    background-color: hsl(var(--tag-dsa) / 0.15);
     color: hsl(var(--tag-dsa));
   }
 
   .tag-default {
-    background-color: hsl(var(--tag-default) / 0.12);
+    background-color: hsl(var(--tag-default) / 0.15);
     color: hsl(var(--tag-default));
   }
 
@@ -245,7 +245,7 @@
   }
 
   .markdown-content blockquote {
-    @apply border-l-4 border-accent pl-4 italic text-muted-foreground;
+    @apply border-l-4 border-primary pl-4 italic text-muted-foreground;
   }
 }
 
