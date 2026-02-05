@@ -6,108 +6,108 @@
 
 @layer base {
   :root {
-    /* Notion-inspired warm neutral palette */
-    --background: 40 20% 98%;
-    --foreground: 30 10% 12%;
+    /* Clean minimal palette - Light mode */
+    --background: 0 0% 99%;
+    --foreground: 0 0% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 10% 12%;
+    --card-foreground: 0 0% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 10% 12%;
+    --popover-foreground: 0 0% 9%;
 
-    /* Warm orange/amber for primary (streak fire) */
-    --primary: 25 95% 53%;
+    /* Soft blue-gray for primary */
+    --primary: 220 13% 26%;
     --primary-foreground: 0 0% 100%;
 
-    /* Soft gray for secondary */
-    --secondary: 40 10% 94%;
-    --secondary-foreground: 30 10% 25%;
+    /* Light gray for secondary */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 32%;
 
-    --muted: 40 10% 96%;
-    --muted-foreground: 30 8% 46%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
     /* Blue accent for interactive elements */
-    --accent: 220 85% 55%;
+    --accent: 220 70% 50%;
     --accent-foreground: 0 0% 100%;
 
-    /* Status colors */
-    --success: 142 71% 45%;
+    /* Status colors - softer tones */
+    --success: 152 60% 40%;
     --success-foreground: 0 0% 100%;
     
-    --warning: 38 92% 50%;
+    --warning: 38 75% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 10% 90%;
-    --input: 40 10% 90%;
-    --ring: 25 95% 53%;
+    --border: 0 0% 91%;
+    --input: 0 0% 91%;
+    --ring: 220 70% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     /* Custom design tokens */
-    --streak-glow: 25 100% 60%;
-    --tag-frontend: 210 90% 55%;
-    --tag-backend: 280 70% 55%;
-    --tag-dsa: 150 70% 45%;
-    --tag-default: 220 15% 50%;
+    --streak-glow: 25 90% 55%;
+    --tag-frontend: 210 70% 50%;
+    --tag-backend: 270 55% 50%;
+    --tag-dsa: 152 55% 40%;
+    --tag-default: 0 0% 50%;
 
     /* Sidebar tokens */
-    --sidebar-background: 40 15% 97%;
-    --sidebar-foreground: 30 10% 25%;
-    --sidebar-primary: 25 95% 53%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 25%;
+    --sidebar-primary: 220 13% 26%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 15% 92%;
-    --sidebar-accent-foreground: 30 10% 20%;
-    --sidebar-border: 40 10% 88%;
-    --sidebar-ring: 25 95% 53%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 220 70% 50%;
   }
 
   .dark {
-    --background: 30 15% 8%;
-    --foreground: 40 20% 95%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 95%;
 
-    --card: 30 12% 12%;
-    --card-foreground: 40 20% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 30 12% 12%;
-    --popover-foreground: 40 20% 95%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 25 95% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 9%;
 
-    --secondary: 30 10% 18%;
-    --secondary-foreground: 40 20% 90%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 85%;
 
-    --muted: 30 10% 18%;
-    --muted-foreground: 40 10% 60%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 220 85% 60%;
+    --accent: 220 70% 55%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    --success: 152 55% 45%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
+    --warning: 38 70% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 50%;
+    --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 10% 20%;
-    --input: 30 10% 20%;
-    --ring: 25 95% 55%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 220 70% 55%;
 
-    --sidebar-background: 30 12% 10%;
-    --sidebar-foreground: 40 20% 90%;
-    --sidebar-primary: 25 95% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 10% 16%;
-    --sidebar-accent-foreground: 40 20% 95%;
-    --sidebar-border: 30 10% 18%;
-    --sidebar-ring: 25 95% 55%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 0 0% 95%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 16%;
+    --sidebar-ring: 220 70% 55%;
   }
 }
 
@@ -123,12 +123,12 @@
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-muted/50;
+    @apply bg-transparent;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -153,11 +153,7 @@
   }
 
   .card-hover:hover {
-    @apply shadow-lg -translate-y-0.5 border-primary/20;
-  }
-
-  .card-hover:active {
-    @apply scale-[0.99];
+    @apply shadow-md border-border/80;
   }
 
   /* Notion-style content blocks */
@@ -167,26 +163,26 @@
 
   /* Tag styles */
   .tag {
-    @apply px-2.5 py-1 text-xs font-medium rounded-full;
+    @apply px-2 py-0.5 text-xs font-medium rounded-md;
   }
 
   .tag-frontend {
-    background-color: hsl(var(--tag-frontend) / 0.15);
+    background-color: hsl(var(--tag-frontend) / 0.12);
     color: hsl(var(--tag-frontend));
   }
 
   .tag-backend {
-    background-color: hsl(var(--tag-backend) / 0.15);
+    background-color: hsl(var(--tag-backend) / 0.12);
     color: hsl(var(--tag-backend));
   }
 
   .tag-dsa {
-    background-color: hsl(var(--tag-dsa) / 0.15);
+    background-color: hsl(var(--tag-dsa) / 0.12);
     color: hsl(var(--tag-dsa));
   }
 
   .tag-default {
-    background-color: hsl(var(--tag-default) / 0.15);
+    background-color: hsl(var(--tag-default) / 0.12);
     color: hsl(var(--tag-default));
   }
 
@@ -196,19 +192,19 @@
   }
 
   .heatmap-1 {
-    background-color: hsl(var(--primary) / 0.25);
+    background-color: hsl(var(--success) / 0.25);
   }
 
   .heatmap-2 {
-    background-color: hsl(var(--primary) / 0.5);
+    background-color: hsl(var(--success) / 0.5);
   }
 
   .heatmap-3 {
-    background-color: hsl(var(--primary) / 0.75);
+    background-color: hsl(var(--success) / 0.75);
   }
 
   .heatmap-4 {
-    @apply bg-primary;
+    @apply bg-success;
   }
 
   /* Markdown content styles */
@@ -249,7 +245,7 @@
   }
 
   .markdown-content blockquote {
-    @apply border-l-4 border-primary pl-4 italic text-muted-foreground;
+    @apply border-l-4 border-accent pl-4 italic text-muted-foreground;
   }
 }
 
