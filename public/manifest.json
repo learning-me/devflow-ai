@@ -1,11 +1,11 @@
 {
-  "name": "DevTracker - Developer Progress Tracker",
-  "short_name": "DevTracker",
-  "description": "Track your daily work, learning progress, interviews, and maintain learning streaks with AI-powered validation.",
+  "name": "Neur - Developer Progress Tracker",
+  "short_name": "Neur",
+  "description": "Track your learning progress, interviews, goals, and maintain learning streaks.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#faf9f7",
-  "theme_color": "#f97316",
+  "background_color": "#0a0a0a",
+  "theme_color": "#171717",
   "orientation": "portrait-primary",
   "icons": [
     {

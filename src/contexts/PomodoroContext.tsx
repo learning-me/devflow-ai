@@ -57,8 +57,8 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Show all topics (not just active) for linking to pomodoro sessions
-  const allTopics = state.learningTopics;
+  // Only use active topics for session linking
+  const activeTopics = state.learningTopics.filter(t => t.status !== 'completed');
 
   const playAlarm = useCallback(() => {
     if (!soundEnabled) return;
@@ -88,11 +88,11 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const getSessionName = useCallback(() => {
     if (selectedTopicId !== 'none') {
-      const topic = allTopics.find((t) => t.id === selectedTopicId);
+      const topic = state.learningTopics.find((t) => t.id === selectedTopicId);
       return topic?.title?.slice(0, 50);
     }
     return undefined;
-  }, [selectedTopicId, allTopics]);
+  }, [selectedTopicId, state.learningTopics]);
 
   const recordSession = useCallback(
     (type: 'work' | 'break', duration: number) => {

@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <Flame className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-sidebar-foreground">DevTracker</span>
+              <span className="font-semibold text-sidebar-foreground">Neur</span>
             </div>
             <button
               onClick={onToggle}

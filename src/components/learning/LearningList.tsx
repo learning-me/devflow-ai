@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useApp } from '@/contexts/AppContext';
 import { formatDisplayDate, formatTime } from '@/lib/storage';
 import { TagBadge } from '@/components/ui/TagBadge';
-import { Trash2, CheckCircle, Clock, BookOpen, RotateCcw, ChevronDown, ChevronUp, Plus, Timer } from 'lucide-react';
+import { Trash2, CheckCircle, Clock, BookOpen, RotateCcw, ChevronDown, ChevronUp, Plus, Timer, Undo2 } from 'lucide-react';
 import { LearningTopic, Subtopic } from '@/types';
 import { cn } from '@/lib/utils';
 import { differenceInDays, parseISO, format } from 'date-fns';
@@ -60,6 +60,15 @@ export const LearningList: React.FC = () => {
 
   const handleMarkComplete = (topic: LearningTopic) => {
     completeLearning(topic.id);
+  };
+
+  const handleUndoComplete = (topic: LearningTopic) => {
+    updateLearningTopic({
+      ...topic,
+      status: 'in-progress',
+      completedAt: undefined,
+      revisedOn: [],
+    });
   };
 
   const handleRevise = (topic: LearningTopic, day: number) => {
@@ -285,59 +294,73 @@ export const LearningList: React.FC = () => {
 
                     <div className="flex flex-col gap-2">
                       {topic.status === 'pending' || topic.status === 'in-progress' ? (
-                        <Button size="sm" onClick={() => handleMarkComplete(topic)} className="gap-1.5">
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          Complete
-                        </Button>
-                      ) : revisionDue !== null ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRevise(topic, revisionDue)}
-                          className="gap-1.5 border-destructive text-destructive hover:bg-destructive/10"
-                        >
-                          <RotateCcw className="w-3.5 h-3.5" />
-                          Revise
-                        </Button>
-                      ) : null}
-                      
-                      {/* Add time button */}
-                      {addingTimeToTopic === topic.id ? (
-                        <div className="flex gap-1">
-                          <Input
-                            type="number"
-                            min="1"
-                            placeholder="min"
-                            className="w-16 h-8 text-xs"
-                            value={timeToAdd}
-                            onChange={(e) => setTimeToAdd(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') addTimeToTopic(topic);
-                              if (e.key === 'Escape') {
-                                setAddingTimeToTopic(null);
-                                setTimeToAdd('');
-                              }
-                            }}
-                            autoFocus
-                          />
+                        <>
+                          <Button size="sm" onClick={() => handleMarkComplete(topic)} className="gap-1.5">
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Complete
+                          </Button>
+                          {/* Add time button - only for non-completed topics */}
+                          {addingTimeToTopic === topic.id ? (
+                            <div className="flex gap-1">
+                              <Input
+                                type="number"
+                                min="1"
+                                placeholder="min"
+                                className="w-16 h-8 text-xs"
+                                value={timeToAdd}
+                                onChange={(e) => setTimeToAdd(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') addTimeToTopic(topic);
+                                  if (e.key === 'Escape') {
+                                    setAddingTimeToTopic(null);
+                                    setTimeToAdd('');
+                                  }
+                                }}
+                                autoFocus
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-2"
+                                onClick={() => addTimeToTopic(topic)}
+                              >
+                                <Plus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setAddingTimeToTopic(topic.id)}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              <Timer className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {revisionDue !== null && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleRevise(topic, revisionDue)}
+                              className="gap-1.5 border-destructive text-destructive hover:bg-destructive/10"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              Revise
+                            </Button>
+                          )}
                           <Button
                             size="sm"
-                            variant="outline"
-                            className="h-8 px-2"
-                            onClick={() => addTimeToTopic(topic)}
+                            variant="ghost"
+                            onClick={() => handleUndoComplete(topic)}
+                            className="gap-1.5 text-muted-foreground hover:text-foreground"
                           >
-                            <Plus className="w-3 h-3" />
+                            <Undo2 className="w-3.5 h-3.5" />
+                            Undo
                           </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setAddingTimeToTopic(topic.id)}
-                          className="text-muted-foreground hover:text-primary"
-                        >
-                          <Timer className="w-4 h-4" />
-                        </Button>
+                        </>
                       )}
                       
                       <Button
