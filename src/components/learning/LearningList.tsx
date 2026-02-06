@@ -8,7 +8,7 @@ import { TagBadge } from '@/components/ui/TagBadge';
 import { Trash2, CheckCircle, Clock, BookOpen, RotateCcw, ChevronDown, ChevronUp, Plus, Timer, Undo2 } from 'lucide-react';
 import { LearningTopic, Subtopic } from '@/types';
 import { cn } from '@/lib/utils';
-import { differenceInDays, parseISO, format } from 'date-fns';
+import { differenceInDays, parseISO, format, isToday } from 'date-fns';
 import { DeleteConfirmDialog } from '@/components/ui/DeleteConfirmDialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -63,12 +63,19 @@ export const LearningList: React.FC = () => {
   };
 
   const handleUndoComplete = (topic: LearningTopic) => {
+    // Only allow undo on the same day
+    if (!topic.completedAt || !isToday(parseISO(topic.completedAt))) return;
+    
     updateLearningTopic({
       ...topic,
       status: 'in-progress',
       completedAt: undefined,
       revisedOn: [],
     });
+  };
+
+  const canUndoComplete = (topic: LearningTopic): boolean => {
+    return topic.status === 'completed' && topic.completedAt ? isToday(parseISO(topic.completedAt)) : false;
   };
 
   const handleRevise = (topic: LearningTopic, day: number) => {
@@ -170,10 +177,10 @@ export const LearningList: React.FC = () => {
             key={f}
             onClick={() => setFilter(f)}
             className={cn(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap',
+              'px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
               filter === f
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                ? 'bg-foreground text-background'
+                : 'bg-secondary text-foreground hover:bg-muted'
             )}
           >
             {f === 'revision' ? 'Due for Revision' : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -183,12 +190,12 @@ export const LearningList: React.FC = () => {
               </span>
             )}
             {f === 'pending' && (
-              <span className="ml-2 text-xs opacity-70">
+              <span className="ml-2 text-xs opacity-60">
                 ({state.learningTopics.filter((t) => t.status === 'pending' || t.status === 'in-progress').length})
               </span>
             )}
             {f === 'completed' && (
-              <span className="ml-2 text-xs opacity-70">
+              <span className="ml-2 text-xs opacity-60">
                 ({state.learningTopics.filter((t) => t.status === 'completed').length})
               </span>
             )}
@@ -345,21 +352,23 @@ export const LearningList: React.FC = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleRevise(topic, revisionDue)}
-                              className="gap-1.5 border-destructive text-destructive hover:bg-destructive/10"
+                              className="gap-1.5 border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
                             >
                               <RotateCcw className="w-3.5 h-3.5" />
                               Revise
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleUndoComplete(topic)}
-                            className="gap-1.5 text-muted-foreground hover:text-foreground"
-                          >
-                            <Undo2 className="w-3.5 h-3.5" />
-                            Undo
-                          </Button>
+                          {canUndoComplete(topic) && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleUndoComplete(topic)}
+                              className="gap-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                            >
+                              <Undo2 className="w-3.5 h-3.5" />
+                              Undo
+                            </Button>
+                          )}
                         </>
                       )}
                       
