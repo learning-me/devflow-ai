@@ -22,10 +22,10 @@
 
     /* Light gray for secondary */
     --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 32%;
+    --secondary-foreground: 0 0% 15%;
 
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted-foreground: 0 0% 40%;
 
     /* Darker gray accent for interactive elements */
     --accent: 0 0% 20%;
@@ -79,10 +79,10 @@
     --primary-foreground: 0 0% 9%;
 
     --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 80%;
+    --secondary-foreground: 0 0% 95%;
 
     --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 55%;
+    --muted-foreground: 0 0% 60%;
 
     --accent: 0 0% 85%;
     --accent-foreground: 0 0% 9%;
