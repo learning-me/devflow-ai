@@ -54,8 +54,8 @@ const PomodoroPage: React.FC = () => {
     (session) => isToday(parseISO(session.completedAt)) && session.type === 'work'
   );
 
-  // Get all learning topics for selection (including completed)
-  const allTopics = state.learningTopics;
+  // Get only pending/in-progress topics for timer linking (not completed ones)
+  const activeTopics = state.learningTopics.filter(t => t.status !== 'completed');
 
   const handleSaveSettings = () => {
     setWorkMinutes(tempWork);
@@ -147,11 +147,10 @@ const PomodoroPage: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No topic linked</SelectItem>
-                    {allTopics.map((topic) => (
+                    {activeTopics.map((topic) => (
                       <SelectItem key={topic.id} value={topic.id}>
                         {topic.title.slice(0, 40)}
                         {topic.title.length > 40 ? '...' : ''}
-                        {topic.status === 'completed' && ' ✓'}
                       </SelectItem>
                     ))}
                   </SelectContent>

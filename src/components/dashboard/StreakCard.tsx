@@ -11,50 +11,40 @@ export const StreakCard: React.FC = () => {
   const isActiveToday = lastCompletedDate === new Date().toISOString().split('T')[0];
 
   return (
-    <Card className="card-hover overflow-hidden relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 pointer-events-none" />
-      <CardContent className="relative p-6">
-        <div className="flex items-start justify-between">
+    <Card className="overflow-hidden">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-sm font-medium text-muted-foreground mb-1">
-              Learning Streak
-            </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold text-primary">{currentStreak}</span>
-              <span className="text-lg text-muted-foreground">days</span>
+            <p className="text-sm text-muted-foreground mb-1">Learning Streak</p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-4xl font-bold">{currentStreak}</span>
+              <span className="text-muted-foreground">days</span>
             </div>
           </div>
           <div
-            className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
-              isActiveToday ? 'bg-primary animate-pulse-glow' : 'bg-primary/20'
-            }`}
+            className={cn(
+              'w-12 h-12 rounded-xl flex items-center justify-center transition-colors',
+              isActiveToday ? 'bg-success text-success-foreground' : 'bg-muted'
+            )}
           >
-            <Flame
-              className={`w-8 h-8 ${
-                isActiveToday ? 'text-primary-foreground' : 'text-primary'
-              }`}
-            />
+            <Flame className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-secondary-foreground" />
-            </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+            <TrendingUp className="w-4 h-4 text-muted-foreground" />
             <div>
-              <p className="text-xs text-muted-foreground">Longest</p>
-              <p className="font-semibold">{longestStreak} days</p>
+              <p className="text-xs text-muted-foreground">Best</p>
+              <p className="font-medium">{longestStreak} days</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-secondary-foreground" />
-            </div>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Today</p>
-              <p className={cn("font-semibold", isActiveToday ? "text-success" : "text-muted-foreground")}>
-                {isActiveToday ? '✓ Done' : 'Not yet'}
+              <p className={cn('font-medium', isActiveToday ? 'text-success' : 'text-muted-foreground')}>
+                {isActiveToday ? '✓ Done' : 'Pending'}
               </p>
             </div>
           </div>
