@@ -2,7 +2,7 @@ import React from 'react';
 import { StreakCard } from '@/components/dashboard/StreakCard';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { HeatmapCalendar } from '@/components/dashboard/HeatmapCalendar';
-import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { FocusSummary } from '@/components/dashboard/FocusSummary';
 import { DueRevisions } from '@/components/dashboard/DueRevisions';
 import { GoalsProgress } from '@/components/dashboard/GoalsProgress';
 
@@ -32,8 +32,8 @@ const Dashboard: React.FC = () => {
         <DueRevisions />
       </div>
 
-      {/* Recent Activity */}
-      <RecentActivity />
+      {/* Focus Summary */}
+      <FocusSummary />
     </div>
   );
 };

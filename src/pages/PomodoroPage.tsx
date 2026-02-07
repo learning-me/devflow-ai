@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, BookOpen, ExternalLink } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, BookOpen, ExternalLink, Flame, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
 import { usePomodoro } from '@/contexts/PomodoroContext';
@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SessionHistory } from '@/components/pomodoro/SessionHistory';
+import { SessionsByDate } from '@/components/pomodoro/SessionsByDate';
 
 const PomodoroPage: React.FC = () => {
   const { state } = useApp();
@@ -162,8 +163,8 @@ const PomodoroPage: React.FC = () => {
           {/* Main Timer */}
           <Card>
             <CardHeader className="text-center pb-2">
-              <CardTitle className={cn('text-lg font-semibold', isBreak ? 'text-success' : 'text-foreground')}>
-                {isBreak ? '☕ Break Time' : '🔥 Focus Time'}
+              <CardTitle className={cn('text-lg font-semibold flex items-center gap-2', isBreak ? 'text-success' : 'text-foreground')}>
+                {isBreak ? <><Pause className="w-5 h-5" /> Break Time</> : <><Flame className="w-5 h-5" /> Focus Time</>}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -253,10 +254,16 @@ const PomodoroPage: React.FC = () => {
           {/* Session History */}
           <SessionHistory />
 
+          {/* Sessions by Date */}
+          <SessionsByDate />
+
           {/* Tips */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-medium mb-2">💡 Pomodoro Technique</h3>
+              <h3 className="font-medium mb-2 flex items-center gap-2">
+                <Lightbulb className="w-4 h-4 text-muted-foreground" />
+                Pomodoro Technique
+              </h3>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Work in focused 25-minute sessions</li>
                 <li>• Take 5-minute breaks between sessions</li>

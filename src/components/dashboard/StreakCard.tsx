@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flame, TrendingUp, Calendar } from 'lucide-react';
+import { Flame, TrendingUp, Calendar, CheckCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
@@ -43,8 +43,8 @@ export const StreakCard: React.FC = () => {
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Today</p>
-              <p className={cn('font-medium', isActiveToday ? 'text-success' : 'text-muted-foreground')}>
-                {isActiveToday ? '✓ Done' : 'Pending'}
+              <p className={cn('font-medium flex items-center gap-1', isActiveToday ? 'text-success' : 'text-muted-foreground')}>
+                {isActiveToday ? <><CheckCircle className="w-3 h-3" /> Done</> : 'Pending'}
               </p>
             </div>
           </div>
