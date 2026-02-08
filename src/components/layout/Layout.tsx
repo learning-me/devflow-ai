@@ -8,8 +8,8 @@ export const Layout: React.FC = () => {
   return (
     <div className="h-screen bg-background flex w-full overflow-hidden">
       <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-      <main className="flex-1 h-full overflow-auto bg-background">
-        <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto min-h-full">
+      <main className="flex-1 h-full overflow-auto bg-background overflow-x-hidden">
+        <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto pb-8">
           <Outlet />
         </div>
       </main>
