@@ -26,7 +26,7 @@ export const LearningList: React.FC = () => {
   const [timeToAdd, setTimeToAdd] = useState('');
   const [newSubtopicInputs, setNewSubtopicInputs] = useState<Record<string, string>>({});
 
-  // Get topics that need revision today
+  // Get topics that need revision - checks if enough revisions have been done
   const getRevisionDue = (topic: LearningTopic): number | null => {
     if (topic.status !== 'completed' || !topic.completedAt) return null;
     
@@ -37,15 +37,20 @@ export const LearningList: React.FC = () => {
     const revisionDays = topic.revisionDays || [1, 3, 7];
     const revisedOn = topic.revisedOn || [];
     
+    // Count how many revision milestones are due vs how many revisions done
+    let dueCount = 0;
     for (const day of revisionDays) {
       if (daysSinceCompletion >= day) {
-        const revisionDate = new Date(completedDate);
-        revisionDate.setDate(revisionDate.getDate() + day);
-        const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
-        
-        if (!revisedOn.includes(revisionDateStr)) {
-          return day;
-        }
+        dueCount++;
+      }
+    }
+    
+    // If we've done fewer revisions than milestones due, revision is needed
+    if (revisedOn.length < dueCount) {
+      // Return the milestone day that corresponds to the next needed revision
+      const nextIndex = revisedOn.length;
+      if (nextIndex < revisionDays.length) {
+        return revisionDays[nextIndex];
       }
     }
     return null;
@@ -78,16 +83,16 @@ export const LearningList: React.FC = () => {
     return topic.status === 'completed' && topic.completedAt ? isToday(parseISO(topic.completedAt)) : false;
   };
 
-  const handleRevise = (topic: LearningTopic, day: number) => {
-    const completedDate = parseISO(topic.completedAt!);
-    const revisionDate = new Date(completedDate);
-    revisionDate.setDate(revisionDate.getDate() + day);
-    const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
+  const handleRevise = (topic: LearningTopic, _day: number) => {
+    // When revising (even if skipped/late), record today's date
+    const today = format(new Date(), 'yyyy-MM-dd');
     
     const revisedOn = topic.revisedOn || [];
+    if (revisedOn.includes(today)) return; // Already revised today
+    
     updateLearningTopic({
       ...topic,
-      revisedOn: [...revisedOn, revisionDateStr],
+      revisedOn: [...revisedOn, today],
     });
   };
 
@@ -256,13 +261,13 @@ export const LearningList: React.FC = () => {
                       {/* Revision badges for completed topics */}
                       {topic.status === 'completed' && topic.completedAt && (
                         <div className="flex flex-wrap gap-1.5 mb-3">
-                          {(topic.revisionDays || [1, 3, 7]).map((day) => {
+                          {(topic.revisionDays || [1, 3, 7]).map((day, index) => {
                             const completedDate = parseISO(topic.completedAt!);
-                            const revisionDate = new Date(completedDate);
-                            revisionDate.setDate(revisionDate.getDate() + day);
-                            const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
-                            const isRevised = (topic.revisedOn || []).includes(revisionDateStr);
-                            const isDue = revisionDue === day;
+                            const daysSinceCompletion = differenceInDays(new Date(), completedDate);
+                            const revisedOn = topic.revisedOn || [];
+                            const isRevised = index < revisedOn.length;
+                            const isMilestoneDue = daysSinceCompletion >= day;
+                            const isDue = isMilestoneDue && !isRevised;
                             
                             return (
                               <span

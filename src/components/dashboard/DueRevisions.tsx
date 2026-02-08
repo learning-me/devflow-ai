@@ -22,38 +22,18 @@ export const DueRevisions: React.FC = () => {
       const revisionDays = topic.revisionDays || [1, 3, 7];
       const revisedOn = topic.revisedOn || [];
       
+      // Count milestones that are due
+      let dueCount = 0;
       for (const day of revisionDays) {
-        if (daysSinceCompletion >= day) {
-          const revisionDate = new Date(completedDate);
-          revisionDate.setDate(revisionDate.getDate() + day);
-          const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
-          
-          if (!revisedOn.includes(revisionDateStr)) {
-            return true;
-          }
-        }
+        if (daysSinceCompletion >= day) dueCount++;
       }
-      return false;
+      
+      return revisedOn.length < dueCount;
     }).map((topic) => {
-      const completedDate = parseISO(topic.completedAt!);
-      const daysSinceCompletion = differenceInDays(today, completedDate);
       const revisionDays = topic.revisionDays || [1, 3, 7];
       const revisedOn = topic.revisedOn || [];
-      
-      // Find the current due revision day
-      let currentDueDay = 0;
-      for (const day of revisionDays) {
-        if (daysSinceCompletion >= day) {
-          const revisionDate = new Date(completedDate);
-          revisionDate.setDate(revisionDate.getDate() + day);
-          const revisionDateStr = format(revisionDate, 'yyyy-MM-dd');
-          
-          if (!revisedOn.includes(revisionDateStr)) {
-            currentDueDay = day;
-            break;
-          }
-        }
-      }
+      const nextIndex = revisedOn.length;
+      const currentDueDay = nextIndex < revisionDays.length ? revisionDays[nextIndex] : 0;
       
       return { ...topic, currentDueDay };
     });
@@ -64,11 +44,13 @@ export const DueRevisions: React.FC = () => {
     if (!topic) return;
 
     const today = format(new Date(), 'yyyy-MM-dd');
-    const updatedTopic = {
+    const revisedOn = topic.revisedOn || [];
+    if (revisedOn.includes(today)) return;
+    
+    updateLearningTopic({
       ...topic,
-      revisedOn: [...(topic.revisedOn || []), today],
-    };
-    updateLearningTopic(updatedTopic);
+      revisedOn: [...revisedOn, today],
+    });
   };
 
   const dueTopics = getDueRevisions();

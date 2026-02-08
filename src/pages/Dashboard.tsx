@@ -26,14 +26,14 @@ const Dashboard: React.FC = () => {
       {/* Stats Cards */}
       <StatsCards />
 
+      {/* Focus Summary */}
+      <FocusSummary />
+
       {/* Goals + Due Revisions */}
       <div className="grid lg:grid-cols-2 gap-6">
         <GoalsProgress />
         <DueRevisions />
       </div>
-
-      {/* Focus Summary */}
-      <FocusSummary />
     </div>
   );
 };
