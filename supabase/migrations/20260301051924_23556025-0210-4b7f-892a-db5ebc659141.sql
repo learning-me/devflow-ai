@@ -1,0 +1,1 @@
+ALTER TABLE public.learning_topics ADD COLUMN category text DEFAULT null;

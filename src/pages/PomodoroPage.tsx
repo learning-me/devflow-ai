@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, BookOpen, ExternalLink, Flame, Lightbulb } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Settings, BookOpen, ExternalLink, Flame, Plus, CheckCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
 import { usePomodoro } from '@/contexts/PomodoroContext';
@@ -22,9 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SessionHistory } from '@/components/pomodoro/SessionHistory';
-import { SessionsByDate } from '@/components/pomodoro/SessionsByDate';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Link } from 'react-router-dom';
 
 const PomodoroPage: React.FC = () => {
   const { state } = useApp();
@@ -45,6 +43,8 @@ const PomodoroPage: React.FC = () => {
     setIsFloating,
     getSessionName,
     progress,
+    taskName,
+    setTaskName,
   } = usePomodoro();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -54,6 +54,7 @@ const PomodoroPage: React.FC = () => {
   const todaySessions = (state.pomodoroSessions || []).filter(
     (session) => isToday(parseISO(session.completedAt)) && session.type === 'work'
   );
+  const todayMinutes = todaySessions.reduce((acc, s) => acc + s.duration, 0);
 
   const activeTopics = state.learningTopics.filter(t => t.status !== 'completed');
 
@@ -69,15 +70,23 @@ const PomodoroPage: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const displayName = getSessionName() || taskName || undefined;
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">Pomodoro Timer</h1>
-          <p className="text-muted-foreground">Stay focused with timed work sessions and breaks.</p>
+          <p className="text-muted-foreground">Stay focused with timed work sessions.</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link to="/pomodoro/history">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <ArrowRight className="w-4 h-4" />
+              History
+            </Button>
+          </Link>
           <Button variant="outline" size="icon" onClick={() => setIsFloating(true)} title="Pop out timer">
             <ExternalLink className="w-4 h-4" />
           </Button>
@@ -126,17 +135,54 @@ const PomodoroPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Timer + Topic Link Row */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Timer */}
         <Card className="lg:col-span-2">
-          <CardHeader className="text-center pb-2">
-            <CardTitle className={cn('text-lg font-semibold flex items-center justify-center gap-2', isBreak ? 'text-success' : 'text-foreground')}>
-              {isBreak ? <><Pause className="w-5 h-5" /> Break Time</> : <><Flame className="w-5 h-5" /> Focus Time</>}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <div className="flex flex-col items-center gap-6">
+              {/* Task Name Input */}
+              <div className="w-full max-w-md space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-muted-foreground">Task Name</Label>
+                  <Input
+                    placeholder="What are you working on?"
+                    value={taskName}
+                    onChange={(e) => setTaskName(e.target.value)}
+                    disabled={isRunning}
+                    className="text-center"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Link to Learning Topic (optional)
+                  </Label>
+                  <Select value={selectedTopicId} onValueChange={setSelectedTopicId} disabled={isRunning}>
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Select a topic" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      <SelectItem value="none">No topic linked</SelectItem>
+                      {activeTopics.map((topic) => (
+                        <SelectItem key={topic.id} value={topic.id}>
+                          {topic.title.length > 40 ? topic.title.slice(0, 40) + '...' : topic.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Timer Circle */}
+              <div className={cn(
+                'text-center py-2',
+                isBreak ? 'text-success' : ''
+              )}>
+                <p className="text-sm font-medium flex items-center justify-center gap-1.5 mb-4">
+                  {isBreak ? <><Pause className="w-4 h-4" /> Break Time</> : <><Flame className="w-4 h-4" /> Focus Time</>}
+                </p>
+              </div>
+              
               <div className="relative w-56 h-56 md:w-64 md:h-64">
                 <svg className="w-full h-full -rotate-90" viewBox="0 0 256 256">
                   <circle cx="128" cy="128" r="120" fill="none" stroke="hsl(var(--muted))" strokeWidth="12" />
@@ -158,9 +204,9 @@ const PomodoroPage: React.FC = () => {
                   <span className={cn('text-sm font-medium mt-2', isBreak ? 'text-success' : 'text-muted-foreground')}>
                     {isBreak ? `${breakMinutes} min break` : `${workMinutes} min session`}
                   </span>
-                  {getSessionName() && (
+                  {displayName && (
                     <span className="text-xs text-muted-foreground mt-1 max-w-[180px] truncate">
-                      {getSessionName()}
+                      {displayName}
                     </span>
                   )}
                 </div>
@@ -182,41 +228,18 @@ const PomodoroPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Right sidebar: Topic + Stats */}
+        {/* Right sidebar */}
         <div className="space-y-4">
-          {/* Link to Topic */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
-                Link to Topic
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Select value={selectedTopicId} onValueChange={setSelectedTopicId}>
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Select a topic" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="none">No topic linked</SelectItem>
-                  {activeTopics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>
-                      {topic.title.length > 30 ? topic.title.slice(0, 30) + '...' : topic.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {activeTopics.length === 0 && (
-                <p className="text-xs text-muted-foreground mt-2">No active topics. Add one in Learning.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Stats */}
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-3xl font-bold text-primary">{todaySessions.length}</div>
               <div className="text-xs text-muted-foreground">Sessions Today</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-3xl font-bold">{todayMinutes}</div>
+              <div className="text-xs text-muted-foreground">Minutes Focused</div>
             </CardContent>
           </Card>
           <Card>
@@ -231,37 +254,8 @@ const PomodoroPage: React.FC = () => {
               <div className="text-xs text-muted-foreground">Break (min)</div>
             </CardContent>
           </Card>
-
-          {/* Tips */}
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-medium mb-2 flex items-center gap-2 text-sm">
-                <Lightbulb className="w-4 h-4 text-muted-foreground" />
-                Tips
-              </h3>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li>• Work in focused 25-min sessions</li>
-                <li>• Take 5-min breaks between sessions</li>
-                <li>• Link sessions to topics for tracking</li>
-              </ul>
-            </CardContent>
-          </Card>
         </div>
       </div>
-
-      {/* Session History Tabs */}
-      <Tabs defaultValue="by-date" className="w-full">
-        <TabsList>
-          <TabsTrigger value="by-date">By Date</TabsTrigger>
-          <TabsTrigger value="all">All Sessions</TabsTrigger>
-        </TabsList>
-        <TabsContent value="by-date">
-          <SessionsByDate />
-        </TabsContent>
-        <TabsContent value="all">
-          <SessionHistory />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

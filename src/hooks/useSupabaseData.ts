@@ -124,6 +124,7 @@ export function useSupabaseData() {
       user_id: user.id,
       title: topic.title,
       description: topic.description,
+      category: topic.category || null,
       tags: topic.tags,
       revision_days: topic.revisionDays || [1, 3, 7],
       subtopics: JSON.parse(JSON.stringify(topic.subtopics || [])),
@@ -144,6 +145,7 @@ export function useSupabaseData() {
     const { error } = await supabase.from('learning_topics').update({
       title: topic.title,
       description: topic.description,
+      category: topic.category || null,
       status: topic.status,
       completed_at: topic.completedAt,
       tags: topic.tags,
@@ -406,6 +408,7 @@ function mapLearningTopic(row: any): LearningTopic {
     id: row.id,
     title: row.title,
     description: row.description,
+    category: row.category || undefined,
     status: row.status,
     completedAt: row.completed_at,
     createdAt: row.created_at,
