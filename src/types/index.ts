@@ -11,6 +11,7 @@ export interface LearningTopic {
   id: string;
   title: string;
   description?: string;
+  category?: string;
   status: 'pending' | 'in-progress' | 'completed';
   completedAt?: string;
   createdAt: string;

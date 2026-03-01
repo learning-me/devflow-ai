@@ -91,8 +91,7 @@ export const FloatingTimer: React.FC = () => {
     };
   }, [isDragging, dragOffset, setFloatingPosition]);
 
-  // Auto-hide on pomodoro page
-  const isOnPomodoroPage = location.pathname === '/pomodoro';
+  const isOnPomodoroPage = location.pathname.startsWith('/pomodoro');
   
   if (!isFloating || isOnPomodoroPage) return null;
 

@@ -27,6 +27,7 @@ export const LearningForm: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [subtopics, setSubtopics] = useState<Subtopic[]>([]);
   const [newSubtopic, setNewSubtopic] = useState('');
@@ -39,6 +40,7 @@ export const LearningForm: React.FC = () => {
     addLearningTopic({
       title,
       description,
+      category: category.trim() || undefined,
       tags: selectedTags,
       subtopics,
       timeSpent: 0,
@@ -88,6 +90,7 @@ export const LearningForm: React.FC = () => {
   const resetForm = () => {
     setTitle('');
     setDescription('');
+    setCategory('');
     setSelectedTags([]);
     setSubtopics([]);
     setNewSubtopic('');
@@ -170,6 +173,16 @@ export const LearningForm: React.FC = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Input
+                  id="category"
+                  placeholder="e.g., Web Development, Algorithms"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
                 />
               </div>
 

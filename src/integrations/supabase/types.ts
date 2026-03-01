@@ -130,6 +130,7 @@ export type Database = {
       }
       learning_topics: {
         Row: {
+          category: string | null
           completed_at: string | null
           created_at: string
           description: string | null
@@ -144,6 +145,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           completed_at?: string | null
           created_at?: string
           description?: string | null
@@ -158,6 +160,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           completed_at?: string | null
           created_at?: string
           description?: string | null

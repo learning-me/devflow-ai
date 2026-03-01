@@ -9,12 +9,14 @@ interface PomodoroContextType {
   breakMinutes: number;
   soundEnabled: boolean;
   selectedTopicId: string;
+  taskName: string;
   isFloating: boolean;
   floatingPosition: { x: number; y: number };
   setWorkMinutes: (mins: number) => void;
   setBreakMinutes: (mins: number) => void;
   setSoundEnabled: (enabled: boolean) => void;
   setSelectedTopicId: (id: string) => void;
+  setTaskName: (name: string) => void;
   toggleTimer: () => void;
   resetTimer: () => void;
   setIsFloating: (floating: boolean) => void;
@@ -36,10 +38,10 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [isBreak, setIsBreak] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [selectedTopicId, setSelectedTopicId] = useState<string>('none');
+  const [taskName, setTaskName] = useState('');
   const [isFloating, setIsFloating] = useState(false);
   const [floatingPosition, setFloatingPosition] = useState({ x: 20, y: 20 });
 
-  // Custom setters that also update timeLeft when not running
   const setWorkMinutes = useCallback((mins: number) => {
     setWorkMinutesState(mins);
     if (!isRunning && !isBreak) {
@@ -56,9 +58,6 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Only use active topics for session linking
-  const activeTopics = state.learningTopics.filter(t => t.status !== 'completed');
 
   const playAlarm = useCallback(() => {
     if (!soundEnabled) return;
@@ -91,8 +90,8 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
       const topic = state.learningTopics.find((t) => t.id === selectedTopicId);
       return topic?.title?.slice(0, 50);
     }
-    return undefined;
-  }, [selectedTopicId, state.learningTopics]);
+    return taskName || undefined;
+  }, [selectedTopicId, state.learningTopics, taskName]);
 
   const recordSession = useCallback(
     (type: 'work' | 'break', duration: number) => {
@@ -163,12 +162,14 @@ export const PomodoroProvider: React.FC<{ children: ReactNode }> = ({ children }
         breakMinutes,
         soundEnabled,
         selectedTopicId,
+        taskName,
         isFloating,
         floatingPosition,
         setWorkMinutes,
         setBreakMinutes,
         setSoundEnabled,
         setSelectedTopicId,
+        setTaskName,
         toggleTimer,
         resetTimer,
         setIsFloating,
